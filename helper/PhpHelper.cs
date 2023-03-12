@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -34,9 +35,26 @@ namespace Gitpod.Tool.Helper
 
             AnsiConsole.MarkupLine("[green1]Valid[/]");
 
+            string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
+
             AnsiConsole.Write("Setting PHP Version to " + newVersion + "....");
+            // Update the CLI Version
             ExecCommand.Exec("sudo update-alternatives --set php /usr/bin/php" + newVersion);
             ExecCommand.Exec("sudo update-alternatives --set php-config /usr/bin/php-config" + newVersion);
+            // Update the version apache uses
+            ExecCommand.Exec("sudo apt-get update");
+            ExecCommand.Exec("sudo apt-get install -y libapache2-mod-php" + newVersion);
+            ExecCommand.Exec("sudo a2dismod php" + currentPhpVersion);
+            ExecCommand.Exec("sudo a2enmod php" + newVersion);
+            
+            if (ExecCommand.Exec("apachectl start").Contains(" already running")) {
+                ExecCommand.Exec("apachectl restart");
+            }
+
+            if (ExecCommand.Exec("service apache2 status").Contains("apache2 is not running")) {
+                ExecCommand.Exec("apachectl start");
+            }
+
             AnsiConsole.MarkupLine("[green1]Done[/]");
 
             AnsiConsole.Write("Validating that the new version has been set....");
@@ -272,6 +290,10 @@ namespace Gitpod.Tool.Helper
             AnsiConsole.MarkupLine("[green1]Done[/]");
 
             PhpHelper.AddUpdateIniSettingInCustomIni(name, value, "./.devEnv/gitpod/php/config/" + currentPhpVersion + "/cli/conf.d/custom.ini", isDebug);
+            PhpHelper.AddUpdateIniSettingInCustomIni(name, value, "./.devEnv/gitpod/php/config/" + currentPhpVersion + "/apache2/conf.d/custom.ini", isDebug);
+            PhpHelper.AddUpdateIniSettingInCustomIni(name, value, "./.devEnv/gitpod/php/config/" + currentPhpVersion + "/fpm/conf.d/custom.ini", isDebug);
+
+            ExecCommand.Exec("apachectl restart");
         }
 
         private static void AddUpdateIniSettingInCustomIni(string name, string value, string fileWithPath, bool isDebug)

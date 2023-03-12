@@ -1,4 +1,5 @@
 using System;
+using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
 {
@@ -19,6 +20,40 @@ namespace Gitpod.Tool.Helper
 
                 result += proc.StandardOutput.ReadToEnd();
                 result += proc.StandardError.ReadToEnd();
+
+                proc.WaitForExit();
+            }
+
+            return result;
+        }
+
+        public static string ExecWithDirectOutput(string command)
+        {
+            string result = "";
+
+            using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
+            {
+                proc.StartInfo.FileName = "/bin/bash";
+                proc.StartInfo.Arguments = "-c \" " + command + " \"";
+                proc.StartInfo.UseShellExecute = false;
+                proc.StartInfo.RedirectStandardOutput = true;
+                proc.StartInfo.RedirectStandardError = true;
+                proc.OutputDataReceived += (sendingProcess, dataLine) => {
+                    if (dataLine.Data != null) {
+                        AnsiConsole.WriteLine(dataLine.Data);
+                    }
+                };
+
+                proc.ErrorDataReceived += (sendingProcess, errorLine) => {
+                    if (errorLine.Data != null) {
+                        AnsiConsole.WriteLine(errorLine.Data);
+                    }
+                };
+
+                proc.Start();
+
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
 
                 proc.WaitForExit();
             }
