@@ -52,22 +52,7 @@ namespace Gitpod.Tool.Commands.Php
 
         private void RestorePhpIni()
         {
-            /*AnsiConsole.Write("Checking if the active file exists....");
-
-            if (!File.Exists("./.devEnv/gitpod/php/active")) {
-                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
-
-                return;
-            }
-
-            AnsiConsole.MarkupLine("[green1]Found[/]");
-
-
-            string[] fileContent = File.ReadAllLines("./.devEnv/gitpod/php/active");
-
-            this.SetNewPhpVersion(fileContent[0]);*/
-
-            throw new System.Exception("Not implemented yet");
+            PhpHelper.UpdatePhpIniFiles(this.settings.Debug);
         }
     }
 }

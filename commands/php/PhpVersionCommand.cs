@@ -15,6 +15,7 @@ namespace Gitpod.Tool.Commands.Php
         public class Settings : CommandSettings
         {
             [CommandArgument(0, "[Version]")]
+            [Description("Set this parameter to change the active PHP version. Leave this parameter empty to show the current version.")]
             public string Version { get; set; }
 
             [CommandOption("-d|--debug")]

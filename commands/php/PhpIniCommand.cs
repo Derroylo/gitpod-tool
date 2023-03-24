@@ -14,14 +14,17 @@ namespace Gitpod.Tool.Commands.Php
         public class Settings : CommandSettings
         {
             [CommandArgument(0, "[Mode]")]
+            [Description("'update' for updating the php.ini files for apache/cli, 'set' for changing a value or empty to show the path")]
             [DefaultValue("")]
             public string Mode { get; set; }
 
             [CommandArgument(1, "[IniSettingName]")]
+            [Description("When using 'set', this is the name of the setting you want to change")]
             [DefaultValue("")]
             public string IniSettingName { get; set; }
 
             [CommandArgument(2, "[IniSettingValue]")]
+            [Description("When using 'set', this is the new value")]
             [DefaultValue("")]
             public string IniSettingValue { get; set; }
 

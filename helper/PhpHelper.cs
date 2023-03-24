@@ -11,115 +11,130 @@ namespace Gitpod.Tool.Helper
     {  
         public static void SetNewPhpVersion(string newVersion, bool isDebug)
         {
-            AnsiConsole.Write("Checking if the input is a valid php version....");
-            Regex regex = new Regex(@"[(0-9)].[(0-9)]");
-            Match match = regex.Match(newVersion);
+            AnsiConsole.Status()
+                .Start("Setting PHP Version to " + newVersion, ctx => 
+                {
+                    Regex regex = new Regex(@"[(0-9)].[(0-9)]");
+                    Match match = regex.Match(newVersion);
 
-            if (!match.Success) {
-                AnsiConsole.MarkupLine("[red]Invalid[/]");
+                    if (!match.Success) {
+                        AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
 
-                return;
-            }
-
-            string inputCheck = ExecCommand.Exec("update-alternatives --query php");
-
-            if (!inputCheck.Contains("/usr/bin/php" + newVersion)) {
-                AnsiConsole.MarkupLine("[red]Invalid[/]");
-                
-                if (isDebug) {
-                    AnsiConsole.Write(inputCheck);
-                }
-
-                return;
-            }
-
-            AnsiConsole.MarkupLine("[green1]Valid[/]");
-
-            string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
-
-            AnsiConsole.Write("Setting PHP Version to " + newVersion + "....");
-            // Update the CLI Version
-            ExecCommand.Exec("sudo update-alternatives --set php /usr/bin/php" + newVersion);
-            ExecCommand.Exec("sudo update-alternatives --set php-config /usr/bin/php-config" + newVersion);
-            // Update the version apache uses
-            ExecCommand.Exec("sudo apt-get update");
-            ExecCommand.Exec("sudo apt-get install -y libapache2-mod-php" + newVersion);
-            ExecCommand.Exec("sudo a2dismod php" + currentPhpVersion);
-            ExecCommand.Exec("sudo a2enmod php" + newVersion);
-            
-            if (ExecCommand.Exec("apachectl start").Contains(" already running")) {
-                ExecCommand.Exec("apachectl restart");
-            }
-
-            if (ExecCommand.Exec("service apache2 status").Contains("apache2 is not running")) {
-                ExecCommand.Exec("apachectl start");
-            }
-
-            AnsiConsole.MarkupLine("[green1]Done[/]");
-
-            AnsiConsole.Write("Validating that the new version has been set....");
-
-            string testResult = PhpHelper.GetCurrentPhpVersionOutput();
-
-            if (isDebug) {
-                AnsiConsole.Write(testResult);
-            }
-
-            if (!testResult.Contains(newVersion)) {
-                AnsiConsole.MarkupLine("[red]Failed[/]");
-
-                return;
-            }
-
-            AnsiConsole.MarkupLine("[green1]Success[/]");
-
-            AnsiConsole.Write("Checking if file with additional packages exists....");
-
-            string[] addPackages = PhpHelper.GetAdditionalPackagesFromConfig(newVersion, isDebug);
-
-            if (addPackages != null && addPackages.Length > 0) {
-                AnsiConsole.MarkupLine("[green1]Found[/]");
-
-                if (isDebug) {
-                    AnsiConsole.WriteLine("File content:");
-
-                    foreach(string line in addPackages) {
-                        AnsiConsole.WriteLine(line);
+                        return;
                     }
-                }
 
-                AnsiConsole.Write("Updating package manager list....");
-                var updateRes = ExecCommand.Exec("sudo apt-get update");
-                AnsiConsole.MarkupLine("[green1]Done[/]");
+                    string inputCheck = ExecCommand.Exec("update-alternatives --query php");
 
-                if (isDebug) {
-                    AnsiConsole.WriteLine(updateRes);
-                }
+                    if (!inputCheck.Contains("/usr/bin/php" + newVersion)) {
+                        AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
+                        
+                        if (isDebug) {
+                            AnsiConsole.Write(inputCheck);
+                        }
 
-                string packages = string.Join(" ", addPackages).Replace("VERSION", newVersion);
+                        return;
+                    }
 
-                AnsiConsole.Write("Installing packages....");
-                var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
-                AnsiConsole.MarkupLine("[green1]Done[/]");                
-                
-                if (isDebug) {
-                    AnsiConsole.WriteLine(installRes);
-                }
-            } else {
-                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
-            }
+                    AnsiConsole.MarkupLine("Checking if the input is a valid php version....[green1]Valid[/]");
 
-            AnsiConsole.Write("Saving the new active version so it can be restored....");
+                    string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
 
-            try {
-                File.WriteAllText("./.devEnv/gitpod/php/active", newVersion);
-            } catch {
-                AnsiConsole.MarkupLine("[red]Failed[/]");
+                    // Update the CLI Version
+                    ExecCommand.Exec("sudo update-alternatives --set php /usr/bin/php" + newVersion);
+                    AnsiConsole.MarkupLine("update-alternatives --set php /usr/bin/php" + newVersion + "...[green1]Success[/]");
 
-                return;
-            }
-            
-            AnsiConsole.MarkupLine("[green1]Done[/]");
+                    ExecCommand.Exec("sudo update-alternatives --set php-config /usr/bin/php-config" + newVersion);
+                    AnsiConsole.MarkupLine("update-alternatives --set php-config /usr/bin/php-config" + newVersion + "...[green1]Success[/]");
+
+                    // Update the version apache uses
+                    ExecCommand.Exec("sudo apt-get update");
+                    AnsiConsole.MarkupLine("apt-get update...[green1]Success[/]");
+
+                    ExecCommand.Exec("sudo apt-get install -y libapache2-mod-php" + newVersion);
+                    AnsiConsole.MarkupLine("apt-get install -y libapache2-mod-php" + newVersion + "...[green1]Success[/]");
+
+                    ExecCommand.Exec("sudo a2dismod php" + currentPhpVersion);
+                    AnsiConsole.MarkupLine("a2dismod php" + currentPhpVersion + "...[green1]Success[/]");
+
+                    ExecCommand.Exec("sudo a2enmod php" + newVersion);
+                    AnsiConsole.MarkupLine("a2enmod php" + newVersion + "...[green1]Success[/]");
+                    
+                    // Checking apache status and restarting it
+                    ctx.Status("Restarting apache...");
+                    
+                    if (ExecCommand.Exec("apachectl start").Contains(" already running")) {
+                        ExecCommand.Exec("apachectl restart");
+                    }
+
+                    if (ExecCommand.Exec("service apache2 status").Contains("apache2 is not running")) {
+                        ExecCommand.Exec("apachectl start");
+                    }
+
+                    AnsiConsole.MarkupLine("Restarting apache...[green1]Success[/]");
+
+
+                    ctx.Status("Validating that the new version has been set...");
+
+                    string testResult = PhpHelper.GetCurrentPhpVersionOutput();
+
+                    if (isDebug) {
+                        AnsiConsole.WriteLine(testResult);
+                    }
+
+                    if (!testResult.Contains(newVersion)) {
+                        AnsiConsole.MarkupLine("Validating that the new version has been set....[red]Failed[/]");
+
+                        return;
+                    }
+
+                    AnsiConsole.MarkupLine("Validating that the new version has been set...[green1]Success[/]");
+
+                    ctx.Status("Checking if file with additional packages exists...");
+
+                    string[] addPackages = PhpHelper.GetAdditionalPackagesFromConfig(newVersion, isDebug);
+
+                    if (addPackages != null && addPackages.Length > 0) {
+                        if (isDebug) {
+                            AnsiConsole.WriteLine("File content:");
+
+                            foreach(string line in addPackages) {
+                                AnsiConsole.WriteLine(line);
+                            }
+                        }
+
+                        var updateRes = ExecCommand.Exec("sudo apt-get update");
+                        AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
+
+                        if (isDebug) {
+                            AnsiConsole.WriteLine(updateRes);
+                        }
+
+                        string packages = string.Join(" ", addPackages).Replace("VERSION", newVersion);
+
+                        var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
+                        AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
+                        
+                        if (isDebug) {
+                            AnsiConsole.WriteLine(installRes);
+                        }
+                    } else {
+                        AnsiConsole.MarkupLine("Checking if file with additional packages exists...[cyan3]Not found[/]");
+                    }
+
+                    ctx.Status("Saving the new active version so it can be restored...");
+
+                    try {
+                        File.WriteAllText("./.devEnv/gitpod/php/active", newVersion);
+
+                        AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
+                    } catch {
+                        AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[red]Failed[/]");
+
+                        return;
+                    }
+                });
+
+            AnsiConsole.MarkupLine("PHP Version has been set to " + newVersion);
         }
 
         public static string[] GetAdditionalPackagesFromConfig(string phpVersion, bool isDebug)
