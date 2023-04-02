@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
+    <RepositoryUrl>https://github.com/Derroylo/gitpod-tool</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
