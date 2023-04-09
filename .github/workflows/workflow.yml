@@ -21,7 +21,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Zip the Build
-      run: zip -r ${{ secrets.ReleaseZipName }} ./bin/Release/net7.0/
+      run: zip -r gitpod-tool ./bin/Release/net7.0/
     - uses: actions/checkout@v3
     - uses: ncipollo/release-action@v1
       env:
@@ -29,5 +29,5 @@ jobs:
       with:
         generateReleaseNotes: true
         makeLatest: true
-        artifacts: ./${{ secrets.ReleaseZipName }}.zip
+        artifacts: ./gitpod-tool.zip
         artifactContentType: application/zip
