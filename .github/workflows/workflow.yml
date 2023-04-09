@@ -19,9 +19,9 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build -r linux-x64 --configuration Release --no-restore --self-contained false /p:PublishSingleFile=true /p:PublishTrimmed=true
     - name: Zip the Build
-      run: zip -r gitpod-tool ./bin/Release/net7.0/
+      run: zip -r gitpod-tool ./bin/Release/net7.0/linux-x64/
     - uses: actions/checkout@v3
     - uses: ncipollo/release-action@v1
       env:
