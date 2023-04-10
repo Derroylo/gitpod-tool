@@ -16,6 +16,9 @@ namespace Gitpod.Tool
 
             app.Configure(config =>
             {
+                config.SetApplicationName("gpt");
+                config.SetApplicationVersion("0.1.0");
+
                 config.AddBranch("php", php =>
                 {
                     php.SetDescription("Different commands to change active php version, ini settings etc.");

@@ -129,8 +129,6 @@ namespace Gitpod.Tool.Helper
                         AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
                     } catch {
                         AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[red]Failed[/]");
-
-                        return;
                     }
                 });
 
