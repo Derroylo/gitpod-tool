@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Gitpod.Tool.Helper;
 using System.Linq;
 using Gitpod.Tool.Commands.Shell;
+using System.Reflection;
 
 namespace Gitpod.Tool
 {
@@ -17,24 +18,32 @@ namespace Gitpod.Tool
     {
         static void Main(string[] args)
         {
-            var app = new CommandApp();
+            var app     = new CommandApp();
+            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+            // Check for updates
+            var latestVersion = GptUpdateHelper.GetLatestVersion().Result;
+            var isUpdateAvailable = GptUpdateHelper.IsUpdateAvailable();
+
+            AnsiConsole.Write(new FigletText("GPT"));
+            AnsiConsole.Markup("[deepskyblue3]Gitpod Tool[/] - Version [green]" + version + "[/]");
+
+            if (isUpdateAvailable) {
+                AnsiConsole.MarkupLine(" - [orange3]Latest Version is " + latestVersion + ". Use 'gpt update' to update.[/]");
+            } else {
+                AnsiConsole.MarkupLine("");
+            }
 
             var addidionalCommands = CustomCommandsLoader.Load();
 
             app.Configure(config =>
             {
                 config.SetApplicationName("gpt");
-                config.SetApplicationVersion("0.1.0");
+                config.SetApplicationVersion(version);
+               
+                config.AddCommand<SelfUpdateCommand>("update")
+                    .WithDescription("Update this tool to the latest version");
 
-                // First add all commands without branches
-                if (addidionalCommands.ContainsKey("default")) {
-                    foreach (CustomCommand cmd in addidionalCommands["default"].Commands) {
-                        config.AddCommand<ShellFileCommand>(cmd.Command)
-                            .WithData(cmd)
-                            .WithDescription(cmd.Description);
-                    }
-                }
-                
                 config.AddBranch("php", php =>
                 {
                     php.SetDescription("Different commands to change active php version, ini settings etc.");
@@ -155,6 +164,15 @@ namespace Gitpod.Tool
                                 .WithDescription(cmd.Description);
                         }
                     });
+                }
+
+                // Add all commands without branches
+                if (addidionalCommands.ContainsKey("default")) {
+                    foreach (CustomCommand cmd in addidionalCommands["default"].Commands) {
+                        config.AddCommand<ShellFileCommand>(cmd.Command)
+                            .WithData(cmd)
+                            .WithDescription(cmd.Description);
+                    }
                 }
             });
 

@@ -12,6 +12,7 @@ This CLI Tool aims to make it easier to use Gitpod for web development. It is st
 - [ ] Define which services should be started from docker-compose
 - [x] Make the Tool extendable via shell scripts
 - [ ] Save the tool configurations in a yml file
+- [x] Ability to update the tool via command
 
 ## Documentation
 There is currently no documentation available but should be available in the coming weeks. If you want to try it, open [Shopware workspace sample](https://github.com/Derroylo/shopware-workspace-sample) in gitpod. In the terminal type `gpt -h` to get a list of the available commands.
@@ -51,6 +52,11 @@ If everything worked, then you should be able to use the `gpt` command in the te
 This tool is written in C# and runs on dotnet v7.
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/derroylo/gitpod-tool)
+
+Within the terminal you can run the app with `dotnet run`. Normally dotnet would use the given flags, like `dotnet run -h`, and interpret them. If you want to pass one or more flags to the app, write `--` before them like in this example `dotnet run -- -h -f`. Now `-h` and `-f` would be handled by the app itself.
+
+To compile the app execute the following command `dotnet build -r linux-x64 --configuration Release --no-restore --self-contained false /p:PublishSingleFile=true /p:PublishTrimmed=true`. You can now copy the created files from `bin/Release/net7.0/linux-x64/`.
+There is also a `compile.sh` script in the root folder that compiles everything and puts the result into `gitpod-tool.zip` in the root folder of the project.
 
 ## Issues, Feature requests etc.
 Create an issue if you encounter problems with this tool or have suggestions on what to add next.

@@ -44,9 +44,13 @@ namespace Gitpod.Tool.Helper
 
                 var shellScriptSettings = CustomCommandsLoader.ProcessShellScript(file);
                 
+                if (shellScriptSettings == null) {
+                    continue;
+                }
+
                 var newCustomCommand = new CustomCommand(shellScriptSettings.Command, file, shellScriptSettings.Description, shellScriptSettings.Arguments);
 
-                if (shellScriptSettings != null && shellScriptSettings.Branch != String.Empty) {
+                if (shellScriptSettings.Branch != String.Empty) {
                     if (commands.ContainsKey(shellScriptSettings.Branch)) {
                         commands[shellScriptSettings.Branch].Commands.Add(newCustomCommand);
                     } else {
@@ -55,7 +59,7 @@ namespace Gitpod.Tool.Helper
 
                         commands.Add(newBranch.Name, newBranch);
                     }
-                } else if (shellScriptSettings != null) {
+                } else {
                     commands["default"].Commands.Add(newCustomCommand);
                 }
             }

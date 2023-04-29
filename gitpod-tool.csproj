@@ -4,12 +4,25 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
+    <Version>0.1.0</Version>
+    <Authors>Carsten Lohmann</Authors>
+    <Product>Gitpod Tool or short gpt</Product>
+    <Description>A little tool to make life easier with gitpod and web development</Description>
     <RepositoryUrl>https://github.com/Derroylo/gitpod-tool</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="newtonsoft.json" Version="13.0.3" />
+    <PackageReference Include="octokit" Version="5.1.0" />
     <PackageReference Include="Spectre.Console" Version="0.46.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.46.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ContentWithTargetPath Include="gpt.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>%(Filename)%(Extension)</TargetPath>
+    </ContentWithTargetPath>
   </ItemGroup>
 
 </Project>

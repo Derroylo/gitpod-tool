@@ -59,21 +59,13 @@ namespace Gitpod.Tool.Helper
                     ExecCommand.Exec("sudo a2enmod php" + newVersion);
                     AnsiConsole.MarkupLine("a2enmod php" + newVersion + "...[green1]Success[/]");
                     
-                    // Checking apache status and restarting it
-                    ctx.Status("Restarting apache...");
+                    // Restarting Apache
+                    ExecCommand.Exec("apachectl stop");
+                    ExecCommand.Exec("apachectl start");
                     
-                    if (ExecCommand.Exec("apachectl start").Contains(" already running")) {
-                        ExecCommand.Exec("apachectl restart");
-                    }
-
-                    if (ExecCommand.Exec("service apache2 status").Contains("apache2 is not running")) {
-                        ExecCommand.Exec("apachectl start");
-                    }
-
                     AnsiConsole.MarkupLine("Restarting apache...[green1]Success[/]");
 
-
-                    ctx.Status("Validating that the new version has been set...");
+                    //ctx.Status("Validating that the new version has been set...");
 
                     string testResult = PhpHelper.GetCurrentPhpVersionOutput();
 
