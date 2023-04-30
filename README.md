@@ -11,7 +11,7 @@ This CLI Tool aims to make it easier to use Gitpod for web development. It is st
 - [ ] Import/Export the database or create/restore Snapshots
 - [ ] Define which services should be started from docker-compose
 - [x] Make the Tool extendable via shell scripts
-- [ ] Save the tool configurations in a yml file
+- [x] Save the tool configurations in a yml file
 - [x] Ability to update the tool via command
 
 ## Documentation

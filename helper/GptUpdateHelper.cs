@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Spectre.Console;
 using Octokit;
 using System.Collections.Generic;
-using System.Text.Json.Nodes;
-using System.Text.Json;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.IO.Compression;
@@ -21,6 +19,8 @@ namespace Gitpod.Tool.Helper
     {  
         private static async Task UpdateCacheFile()
         {
+            var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
+
             GitHubClient client = new GitHubClient(new ProductHeaderValue("SomeName"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Derroylo", "gitpod-tool");
             IReadOnlyList<ReleaseAsset> assets = releases[0].Assets;
@@ -31,16 +31,18 @@ namespace Gitpod.Tool.Helper
                 new JProperty("download_url", assets[0].BrowserDownloadUrl)
             );
 
-            File.WriteAllText("releases.json", tmp.ToString());
+            File.WriteAllText(applicationDir + "releases.json", tmp.ToString());
         }
 
         public static async Task<string> GetLatestVersion(bool forceUpdate = false)
         {
-            if (!File.Exists("releases.json") || forceUpdate) {
+            var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            if (!File.Exists(applicationDir + "releases.json") || forceUpdate) {
                 await UpdateCacheFile();
             }
 
-            JObject cacheFile = JObject.Parse(File.ReadAllText("releases.json"));
+            JObject cacheFile = JObject.Parse(File.ReadAllText(applicationDir + "releases.json"));
 
             // Check if we need to update the cache file
             var lastCheck = (DateTime) cacheFile["last_check"];
@@ -50,7 +52,7 @@ namespace Gitpod.Tool.Helper
             if (diffHours > 4) {
                 await UpdateCacheFile();
 
-                cacheFile = JObject.Parse(File.ReadAllText("releases.json"));
+                cacheFile = JObject.Parse(File.ReadAllText(applicationDir + "releases.json"));
             }
             
             return (string) cacheFile["last_release"];
@@ -75,8 +77,8 @@ namespace Gitpod.Tool.Helper
 
         public static async Task<bool> UpdateToLatestRelease()
         {
-            JObject cacheFile = JObject.Parse(File.ReadAllText("releases.json"));
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
+            JObject cacheFile = JObject.Parse(File.ReadAllText(applicationDir + "releases.json"));
 
             try {
                 var httpClient = new HttpClient();

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Newtonsoft.Json.Converters;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -83,17 +85,7 @@ namespace Gitpod.Tool.Helper
 
                     ctx.Status("Checking if file with additional packages exists...");
 
-                    string[] addPackages = PhpHelper.GetAdditionalPackagesFromConfig(newVersion, isDebug);
-
-                    if (addPackages != null && addPackages.Length > 0) {
-                        if (isDebug) {
-                            AnsiConsole.WriteLine("File content:");
-
-                            foreach(string line in addPackages) {
-                                AnsiConsole.WriteLine(line);
-                            }
-                        }
-
+                    if (GptConfigHelper.Config?.Php?.Packages?.Count > 0) {
                         var updateRes = ExecCommand.Exec("sudo apt-get update");
                         AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
 
@@ -101,7 +93,7 @@ namespace Gitpod.Tool.Helper
                             AnsiConsole.WriteLine(updateRes);
                         }
 
-                        string packages = string.Join(" ", addPackages).Replace("VERSION", newVersion);
+                        string packages = string.Join(" ", GptConfigHelper.Config.Php.Packages).Replace("VERSION", newVersion);
 
                         var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
                         AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
@@ -116,7 +108,16 @@ namespace Gitpod.Tool.Helper
                     ctx.Status("Saving the new active version so it can be restored...");
 
                     try {
-                        File.WriteAllText("./.devEnv/gitpod/php/active", newVersion);
+                        if (GptConfigHelper.Config == null) {
+                            GptConfigHelper.Config = new Classes.Configuration.Configuration();
+                        }
+
+                        if (GptConfigHelper.Config.Php == null) {
+                            GptConfigHelper.Config.Php = new Classes.Configuration.PhpConfiguration();
+                        }
+
+                        GptConfigHelper.Config.Php.Version = newVersion;
+                        GptConfigHelper.WriteConfigFile();
 
                         AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
                     } catch {
@@ -125,37 +126,6 @@ namespace Gitpod.Tool.Helper
                 });
 
             AnsiConsole.MarkupLine("PHP Version has been set to " + newVersion);
-        }
-
-        public static string[] GetAdditionalPackagesFromConfig(string phpVersion, bool isDebug)
-        {
-            string[] fileContent = null;
-
-            if (isDebug) {
-                AnsiConsole.Write("Checking if \".devEnv/gitpod/config/php/packages/" + phpVersion + "\" exists....");
-            }
-
-            if (File.Exists(".devEnv/gitpod/config/php/packages/" + phpVersion)) {
-                fileContent = File.ReadAllLines(".devEnv/gitpod/config/php/packages/" + phpVersion);
-
-                if (isDebug) {
-                    AnsiConsole.Write("Exists. Skipping further checks....");
-                }
-            } else if (isDebug) {
-                AnsiConsole.Write("Does not exists. Checking if \".devEnv/gitpod/config/php/packages/default\" exists....");
-            }
-
-            if (fileContent == null && File.Exists(".devEnv/gitpod/config/php/packages/default")) {
-                fileContent = File.ReadAllLines(".devEnv/gitpod/config/php/packages/default");
-
-                if (isDebug) {
-                    AnsiConsole.Write("Exists....");
-                }
-            } else if (isDebug) {
-                AnsiConsole.Write("Does not exists....");
-            }
-
-            return fileContent;
         }
 
         public static string GetCurrentPhpVersionOutput()
@@ -190,43 +160,43 @@ namespace Gitpod.Tool.Helper
                 AnsiConsole.WriteLine("Active PHP Version " + currentPhpVersion);
             }
 
-            AnsiConsole.Write("Checking if we have a folder with ini files for the active version....");
+            AnsiConsole.Write("Generating custom.ini....");
 
-            if (!Directory.Exists("./.devEnv/gitpod/php/config/" + currentPhpVersion)) {
-                AnsiConsole.MarkupLine("[cyan3]Directory Not found[/]");
+            var customIniPath = PhpHelper.GenerateCustomIniFilesFromConfig();
 
-                return;
-            }
-
-            string[] additionalIniFiles = Directory.GetFiles("./.devEnv/gitpod/php/config/" + currentPhpVersion, "*.ini", SearchOption.AllDirectories);
-
-            if (additionalIniFiles.Length == 0) {
-                AnsiConsole.MarkupLine("[cyan3]No files found[/]");
+            if (customIniPath == String.Empty) {
+                AnsiConsole.MarkupLine("[cyan3]No custom settings found[/]");
 
                 return;
             }
 
-            AnsiConsole.MarkupLine("[green1]Found " + additionalIniFiles.Length + " File(s)[/]");
+            AnsiConsole.MarkupLine("[green1]Done[/]");
+           
+            AnsiConsole.Write("Copy the custom.ini to the target directory....");
 
+            string targetFile = "/etc/php/" + currentPhpVersion + "/cli/conf.d/custom.ini";
+            
             if (isDebug) {
-                AnsiConsole.WriteLine("Found the following files: ");
-
-                foreach (string file in additionalIniFiles) {
-                    AnsiConsole.WriteLine(file);
-                }
+                AnsiConsole.WriteLine("Copying from \"" + customIniPath + "\" to \"" + targetFile + "\"");
             }
             
-            AnsiConsole.Write("Copy the file(s) to the target directory....");
+            ExecCommand.Exec("sudo cp " + customIniPath + " " + targetFile);
 
-            foreach (string file in additionalIniFiles) {
-                string targetFile = "/etc/php/" + currentPhpVersion + "/" + file.Replace("./.devEnv/gitpod/php/config/" + currentPhpVersion  + "/", "");
-                
-                if (isDebug) {
-                    AnsiConsole.WriteLine("Copying from \"" + file + "\" to \"" + targetFile + "\"");
-                }
-                
-                ExecCommand.Exec("sudo cp " + file + " " + targetFile);
+            targetFile = "/etc/php/" + currentPhpVersion + "/apache2/conf.d/custom.ini";
+            
+            if (isDebug) {
+                AnsiConsole.WriteLine("Copying from \"" + customIniPath + "\" to \"" + targetFile + "\"");
             }
+            
+            ExecCommand.Exec("sudo cp " + customIniPath + " " + targetFile);
+
+            targetFile = "/etc/php/" + currentPhpVersion + "/apache2/conf.d/custom.ini";
+            
+            if (isDebug) {
+                AnsiConsole.WriteLine("Copying from \"" + customIniPath + "\" to \"" + targetFile + "\"");
+            }
+            
+            ExecCommand.Exec("sudo cp " + customIniPath + " " + targetFile);
 
             AnsiConsole.MarkupLine("[green1]Done[/]");
         }
@@ -245,117 +215,50 @@ namespace Gitpod.Tool.Helper
                 AnsiConsole.WriteLine("Active PHP Version " + currentPhpVersion);
             }
 
-            AnsiConsole.Write("Checking if we have a folder with ini files for the active version....");
+            if (GptConfigHelper.Config == null) {
+                GptConfigHelper.Config = new Classes.Configuration.Configuration();
+            }
 
-            if (!Directory.Exists("./.devEnv/gitpod/php/config/" + currentPhpVersion)) {
-                if (isDebug) {
-                    AnsiConsole.Write("Not found, creating it....");
-                }
-                
-                // Creating main directory
-                Directory.CreateDirectory("./.devEnv/gitpod/php/config/" + currentPhpVersion);
-
-                AnsiConsole.MarkupLine("[cyan3]Created[/]");
+            if (GptConfigHelper.Config.Php.Config.ContainsKey(name)) {
+                GptConfigHelper.Config.Php.Config[name] = value;
             } else {
-                AnsiConsole.MarkupLine("[green1]Found[/]");
+                GptConfigHelper.Config.Php.Config.Add(name, value);
             }
 
-            AnsiConsole.Write("Checking if the folder exists for cli and apache....");
+            GptConfigHelper.WriteConfigFile();
 
-            if (!Directory.Exists("./.devEnv/gitpod/php/config/" + currentPhpVersion + "/cli/conf.d")) {
-                if (isDebug) {
-                    AnsiConsole.Write("Not found, creating cli dir....");
-                }
-                
-                // Creating subdirectory for Apache
-                Directory.CreateDirectory("./.devEnv/gitpod/php/config/" + currentPhpVersion + "/cli/conf.d");
-
-            }
-
-            if (!Directory.Exists("./.devEnv/gitpod/php/config/" + currentPhpVersion + "/apache2/conf.d")) {
-                if (isDebug) {
-                    AnsiConsole.Write("Not found, creating apache dir....");
-                }
-                
-                // Creating subdirectory for Apache
-                Directory.CreateDirectory("./.devEnv/gitpod/php/config/" + currentPhpVersion + "/apache2/conf.d");
-
-            }
-
-            if (!Directory.Exists("./.devEnv/gitpod/php/config/" + currentPhpVersion + "/fpm/conf.d")) {
-                if (isDebug) {
-                    AnsiConsole.Write("Not found, creating fpm dir....");
-                }
-                
-                // Creating subdirectory for fpm
-                Directory.CreateDirectory("./.devEnv/gitpod/php/config/" + currentPhpVersion + "/fpm/conf.d");
-
-            }
-
-            AnsiConsole.MarkupLine("[green1]Done[/]");
-
-            PhpHelper.AddUpdateIniSettingInCustomIni(name, value, "./.devEnv/gitpod/php/config/" + currentPhpVersion + "/cli/conf.d/custom.ini", isDebug);
-            PhpHelper.AddUpdateIniSettingInCustomIni(name, value, "./.devEnv/gitpod/php/config/" + currentPhpVersion + "/apache2/conf.d/custom.ini", isDebug);
-            PhpHelper.AddUpdateIniSettingInCustomIni(name, value, "./.devEnv/gitpod/php/config/" + currentPhpVersion + "/fpm/conf.d/custom.ini", isDebug);
+            // Update the ini files that are being used by apache and cli
+            PhpHelper.UpdatePhpIniFiles(isDebug);
 
             ExecCommand.Exec("apachectl restart");
         }
 
-        private static void AddUpdateIniSettingInCustomIni(string name, string value, string fileWithPath, bool isDebug)
+        private static string GenerateCustomIniFilesFromConfig()
         {
-            AnsiConsole.Write("Checking if \"" + fileWithPath + "\" exists....");
+            var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
+            var iniSettingsFolder = applicationDir + "/php";
 
-            if (!File.Exists(fileWithPath)) {
-                if (isDebug) {
-                    AnsiConsole.Write("Not found, creating it....");
-                }
-                
-                File.Create(fileWithPath).Close();
-
-                AnsiConsole.MarkupLine("[cyan3]Created[/]");
-            } else {
-                AnsiConsole.MarkupLine("[green1]Found[/]");
+            if (!Directory.Exists(iniSettingsFolder)) {
+                Directory.CreateDirectory(iniSettingsFolder);
             }
 
-            AnsiConsole.Write("Reading content of \"" + fileWithPath + "\"....");
-
-            string[] fileContent = File.ReadAllLines(fileWithPath);
-
-            AnsiConsole.MarkupLine("[green1]Done[/]");
-
-            AnsiConsole.Write("Checking if the config already contains a value for the setting...");
-
-            bool settingFound = false;
-            Regex regex = new Regex("^" + name + @".?=.?(.*)");
-
-            for (int i = 0; i < fileContent.Length; i++) {
-                Match match = regex.Match(fileContent[i]);
-
-                if (match.Success) {
-                    if (isDebug) {
-                        AnsiConsole.WriteLine("Found setting in current custom.ini: " + fileContent[i]);
-                    }
-                    
-                    settingFound = true;
-                    fileContent[i] = name + " = " + value;
-                }
+            if (GptConfigHelper.Config == null) {
+                GptConfigHelper.Config = new Classes.Configuration.Configuration();
             }
 
-            if (!settingFound) {
-                AnsiConsole.MarkupLine("[cyan3]Not found, adding it to the end[/]");
-                fileContent = fileContent.Append<String>(name + " = " + value).ToArray<string>();
-            } else {
-                AnsiConsole.MarkupLine("[green1]Updated[/]");
+            if (GptConfigHelper.Config.Php.Config.Count == 0) {
+                return String.Empty;
             }
 
-            AnsiConsole.Write("Updating the custom.ini file...");
+            string customIniContent = String.Empty;
 
-            File.WriteAllLines(fileWithPath, fileContent);
+            foreach (KeyValuePair<string, string> item in GptConfigHelper.Config.Php.Config) {
+                customIniContent += item.Key + " = " + item.Value + "\n";
+            }
 
-            AnsiConsole.MarkupLine("[green1]Done[/]");
+            File.WriteAllText(iniSettingsFolder + "/custom.ini", customIniContent);
 
-            // Update the ini files that are being used by apache and cli
-            PhpHelper.UpdatePhpIniFiles(isDebug);
+            return iniSettingsFolder + "/custom.ini";
         }
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.IO;
 using Gitpod.Tool.Helper;
@@ -30,9 +31,9 @@ namespace Gitpod.Tool.Commands.Php
 
         private void RestorePhpVersion()
         {
-            AnsiConsole.Write("Checking if the active file exists....");
+            AnsiConsole.Write("Checking if php version has been set via config....");
 
-            if (!File.Exists("./.devEnv/gitpod/php/active")) {
+            if (GptConfigHelper.Config == null || GptConfigHelper.Config.Php == null || GptConfigHelper.Config.Php.Version == String.Empty) {
                 AnsiConsole.MarkupLine("[cyan3]Not found[/]");
 
                 return;
@@ -40,14 +41,7 @@ namespace Gitpod.Tool.Commands.Php
 
             AnsiConsole.MarkupLine("[green1]Found[/]");
 
-
-            string[] fileContent = File.ReadAllLines("./.devEnv/gitpod/php/active");
-
-            if (this.settings.Debug) {
-                AnsiConsole.WriteLine("file content from ./.devEnv/gitpod/php/active: " + fileContent[0]);
-            }
-
-            PhpHelper.SetNewPhpVersion(fileContent[0], this.settings.Debug);
+            PhpHelper.SetNewPhpVersion(GptConfigHelper.Config.Php.Version, this.settings.Debug);
         }
 
         private void RestorePhpIni()

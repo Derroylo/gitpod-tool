@@ -11,6 +11,11 @@ using Gitpod.Tool.Helper;
 using System.Linq;
 using Gitpod.Tool.Commands.Shell;
 using System.Reflection;
+using YamlDotNet.Serialization.NamingConventions;
+using Gitpod.Tool.Classes.Configuration;
+using System.IO;
+using YamlDotNet.Serialization;
+using Gitpod.Tool.Commands.Config;
 
 namespace Gitpod.Tool
 {
@@ -34,6 +39,10 @@ namespace Gitpod.Tool
                 AnsiConsole.MarkupLine("");
             }
 
+            // Load the configuration file if it exits
+            GptConfigHelper.ReadConfigFile();
+
+            // Load additional commands that are defined within shell scripts
             var addidionalCommands = CustomCommandsLoader.Load();
 
             app.Configure(config =>
@@ -43,6 +52,23 @@ namespace Gitpod.Tool
                
                 config.AddCommand<SelfUpdateCommand>("update")
                     .WithDescription("Update this tool to the latest version");
+
+                config.AddBranch("config", config =>
+                {
+                    config.SetDescription("Creates or verify the configuration file");
+                    
+                    config.AddCommand<VerifyConfigCommand>("verify")
+                        .WithAlias("v")
+                        .WithDescription(@"Tries to read the config file and shows it`s content");                    
+
+                    if (addidionalCommands.ContainsKey("config")) {
+                        foreach (CustomCommand cmd in addidionalCommands["config"].Commands) {
+                            config.AddCommand<ShellFileCommand>(cmd.Command)
+                                .WithData(cmd)
+                                .WithDescription(cmd.Description);
+                        }
+                    }
+                });
 
                 config.AddBranch("php", php =>
                 {
@@ -150,7 +176,7 @@ namespace Gitpod.Tool
                     }
                 });
 
-                var reservedBranches = new List<String>() { "default", "php", "nodejs", "apache", "mysql", "services" };
+                var reservedBranches = new List<String>() { "default", "config", "php", "nodejs", "apache", "mysql", "services" };
 
                 // Add branches that haven´t been added yet via custom commands
                 foreach (KeyValuePair<string, CustomBranch> entry in addidionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {

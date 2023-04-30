@@ -1,3 +1,5 @@
 .vscode
 bin
 obj
+gitpod-tool.zip
+.gpt.yml
