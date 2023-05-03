@@ -13,6 +13,7 @@ This CLI Tool aims to make it easier to use Gitpod for web development. It is st
 - [x] Make the Tool extendable via shell scripts
 - [x] Save the tool configurations in a yml file
 - [x] Ability to update the tool via command
+- [ ] Define additional folders that should be included for extending this tool via shell scripts
 
 ## Documentation
 There is currently no documentation available but should be available in the coming weeks. If you want to try it, open [Shopware workspace sample](https://github.com/Derroylo/shopware-workspace-sample) in gitpod. In the terminal type `gpt -h` to get a list of the available commands.

@@ -38,6 +38,7 @@ namespace Gitpod.Tool.Commands.Config
             }
 
             this.OutputPhpSettings();
+            this.OutputServiceSettings();
 
             return 0;
         }
@@ -81,6 +82,30 @@ namespace Gitpod.Tool.Commands.Config
                 settingsTable.AddColumn("Name");
 
                 foreach(string item in GptConfigHelper.Config.Php.Packages) {
+                    settingsTable.AddRow(item);
+                }
+                
+                // Render the table to the console
+                AnsiConsole.Write(settingsTable);
+            }
+        }
+
+        private void OutputServiceSettings()
+        {
+            var rule = new Rule("[red]Services[/]");
+            rule.Justification = Justify.Left;
+            AnsiConsole.Write(rule);
+
+            if (GptConfigHelper.Config?.Services?.Active?.Count > 0) {
+                AnsiConsole.WriteLine("Settings:");
+
+                // Create a table
+                var settingsTable = new Table();
+
+                // Add columns
+                settingsTable.AddColumn("Name");
+
+                foreach(string item in GptConfigHelper.Config.Services.Active) {
                     settingsTable.AddRow(item);
                 }
                 

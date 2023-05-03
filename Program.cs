@@ -16,6 +16,7 @@ using Gitpod.Tool.Classes.Configuration;
 using System.IO;
 using YamlDotNet.Serialization;
 using Gitpod.Tool.Commands.Config;
+using Gitpod.Tool.Commands.Services;
 
 namespace Gitpod.Tool
 {
@@ -160,8 +161,10 @@ namespace Gitpod.Tool
 
                 config.AddBranch("services", services =>
                 {
-                    services.SetDescription("Define which services should be started [red]Not implemented yet[/]");
+                    services.SetDescription("List, status of services and define which should be started");
 
+                    services.AddCommand<ListServicesCommand>("list")
+                        .WithDescription("List available the services");
                     services.AddCommand<NotYetImplementedCommand>("start")
                         .WithDescription("Start the services that are marked as active [red]Not implemented yet[/]");
                     services.AddCommand<NotYetImplementedCommand>("select")
