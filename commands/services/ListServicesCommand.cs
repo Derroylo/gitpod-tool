@@ -33,11 +33,13 @@ namespace Gitpod.Tool.Commands.Services
             servicesTable.AddColumn("Status");
             servicesTable.AddColumn("Active per default");
 
-            foreach(KeyValuePair<string, string> item in services) {
-                bool isActive = GptConfigHelper.Config.Services.Active.Contains(item.Key);
-                bool isRunning = DockerComposeHelper.IsServiceStarted(item.Value);
+            foreach(KeyValuePair<string, Dictionary<string, string>> item in services) {
+                var serviceAlias = item.Value["alias"];
 
-                servicesTable.AddRow(item.Key + (item.Key != item.Value ? " (" + item.Value + ")" : ""), isRunning ? "[green1]Running[/]" : "[red]Not started[/]", isActive ? "[green1]Active[/]" : "[red]Inactive[/]");
+                bool isActive = GptConfigHelper.Config.Services.Active.Contains(item.Key);
+                bool isRunning = DockerComposeHelper.IsServiceStarted(serviceAlias);
+
+                servicesTable.AddRow(item.Key + (item.Key != serviceAlias ? " (" + serviceAlias + ")" : ""), isRunning ? "[green1]Running[/]" : "[red]Not started[/]", isActive ? "[green1]Active[/]" : "[red]Inactive[/]");
             }
             
             AnsiConsole.Write(servicesTable);

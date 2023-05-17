@@ -165,10 +165,12 @@ namespace Gitpod.Tool
 
                     services.AddCommand<ListServicesCommand>("list")
                         .WithDescription("List available the services");
-                    services.AddCommand<NotYetImplementedCommand>("start")
-                        .WithDescription("Start the services that are marked as active [red]Not implemented yet[/]");
-                    services.AddCommand<NotYetImplementedCommand>("select")
-                        .WithDescription("Select which services should be active [red]Not implemented yet[/]");
+                    services.AddCommand<StartServicesCommand>("start")
+                        .WithDescription("Start the services that are marked as active");
+                    services.AddCommand<StartServicesCommand>("stop")
+                        .WithDescription("Stops running services");
+                    services.AddCommand<SelectServicesCommand>("select")
+                        .WithDescription("Select which services should be active");
 
                     if (addidionalCommands.ContainsKey("services")) {
                         foreach (CustomCommand cmd in addidionalCommands["services"].Commands) {

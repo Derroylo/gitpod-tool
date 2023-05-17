@@ -13,7 +13,7 @@
             "program": "${workspaceFolder}/bin/Debug/net7.0/gitpod-tool.dll",
             "args": [
                "services",
-               "list"
+               "select"
             ],
             "cwd": "${workspaceFolder}",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console

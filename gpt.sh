@@ -22,3 +22,19 @@ if [ -d "update" ]; then
     # Set execution rights for the shell script
     chmod +x gpt.sh
 fi
+
+# Check if we want to start services
+if [ -f "$SCRIPTPATH/.services_start" ]; then
+    activeServices=$(<"$SCRIPTPATH/.services_start")
+
+    rm "$SCRIPTPATH/.services_start"
+
+    docker-compose up $activeServices
+fi
+
+# Check if we want to stop services
+if [ -f "$SCRIPTPATH/.services_stop" ]; then
+    rm "$SCRIPTPATH/.services_stop"
+
+    docker-compose stop
+fi
