@@ -5,19 +5,22 @@ This CLI Tool aims to make it easier to use Gitpod for web development. It is st
 
 - [x] Change and persist PHP Version on the fly
 - [x] Change and persist PHP Settings on the fly
-- [ ] Enable/Disable xdebug on the fly
 - [x] Start, Restart and Stop the Apache Webserver
-- [ ] Change the nodejs version
-- [ ] Import/Export the database or create/restore Snapshots
 - [x] Define which services should be started from docker-compose
 - [x] Make the Tool extendable via shell scripts
 - [x] Save the tool configurations in a yml file
 - [x] Ability to update the tool via command
+- [ ] Enable/Disable xdebug on the fly
+- [ ] Change the nodejs version
+- [ ] Import/Export the database or create/restore Snapshots
 - [ ] Define additional folders that should be included for extending this tool via shell scripts
 - [ ] Add the ability to save a file and/or folder as env variable
+- [ ] Split php settings for cli and web
+- [ ] Select php version via dropdown, similar to services
+- [ ] Add php modules via command
 
 ## Documentation
-There is currently no documentation available but should be available in the coming weeks. If you want to try it, open [Shopware workspace sample](https://github.com/Derroylo/shopware-workspace-sample) in gitpod. In the terminal type `gpt -h` to get a list of the available commands.
+The documentation can be found under [GPT Documentation](https://derroylo.github.io). If you want to try it, open [Shopware workspace sample](https://github.com/Derroylo/shopware-workspace-sample) in gitpod. In the terminal type `gpt -h` to get a list of the available commands.
 
 ## Installation
 
