@@ -18,6 +18,7 @@ This CLI Tool aims to make it easier to use Gitpod for web development. It is st
 - [ ] Split php settings for cli and web
 - [ ] Select php version via dropdown, similar to services
 - [ ] Add php modules via command
+- [ ] Implement a method to reuse the index for phpstorm within prebuilds (phpstorm can use a shared index)
 
 ## Documentation
 The documentation can be found under [GPT Documentation](https://derroylo.github.io). If you want to try it, open [Shopware workspace sample](https://github.com/Derroylo/shopware-workspace-sample) in gitpod. In the terminal type `gpt -h` to get a list of the available commands.
