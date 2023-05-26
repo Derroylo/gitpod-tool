@@ -12,5 +12,9 @@ namespace Gitpod.Tool.Classes.Configuration
         private ServiceConfiguration services = new ServiceConfiguration();
 
         public ServiceConfiguration Services { get { return services; } set { services = value; } }
+
+        private ShellScriptsConfiguration shellScripts = new ShellScriptsConfiguration();
+
+        public ShellScriptsConfiguration ShellScripts { get { return shellScripts; } set { shellScripts = value; } }
     }
 }

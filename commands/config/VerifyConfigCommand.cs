@@ -39,6 +39,7 @@ namespace Gitpod.Tool.Commands.Config
 
             this.OutputPhpSettings();
             this.OutputServiceSettings();
+            this.OutputShellScriptSettings();
 
             return 0;
         }
@@ -111,6 +112,41 @@ namespace Gitpod.Tool.Commands.Config
                 
                 // Render the table to the console
                 AnsiConsole.Write(settingsTable);
+            }
+        }
+
+        private void OutputShellScriptSettings()
+        {
+            var rule = new Rule("[red]Shell scripts[/]");
+            rule.Justification = Justify.Left;
+            AnsiConsole.Write(rule);
+
+            if (GptConfigHelper.Config.ShellScripts.AdditionalDirectories.Count > 0) {
+                AnsiConsole.WriteLine("Additional directories:");
+
+                // Create a table
+                var directoriesTable = new Table();
+
+                // Add columns
+                directoriesTable.AddColumn("Directory");
+                directoriesTable.AddColumn("Exists");
+                directoriesTable.AddColumn("Scripts found");
+
+                var currentDir = Directory.GetCurrentDirectory() + "/";
+
+                foreach(string item in GptConfigHelper.Config.ShellScripts.AdditionalDirectories) {
+                    bool dirExists = Directory.Exists(currentDir + item);
+                    int scriptsFound = 0;
+
+                    if (dirExists) {
+                        scriptsFound = Directory.GetFiles(currentDir + item, "*.sh", SearchOption.AllDirectories).Count();
+                    }
+
+                    directoriesTable.AddRow(item, dirExists ? "[green1]Yes[/]" : "[red]No[/]", scriptsFound.ToString());
+                }
+                
+                // Render the table to the console
+                AnsiConsole.Write(directoriesTable);
             }
         }
     }   

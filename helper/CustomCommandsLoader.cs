@@ -13,7 +13,15 @@ namespace Gitpod.Tool.Helper
         public static Dictionary<string, CustomBranch> Load()
         {           
             try {
-                return CustomCommandsLoader.SearchForShellScripts(".devEnv/gitpod/scripts");
+                var scripts = CustomCommandsLoader.SearchForShellScripts(".devEnv/gitpod/scripts");
+
+                if (GptConfigHelper.Config.ShellScripts.AdditionalDirectories.Count > 0) {
+                    foreach (string folder in GptConfigHelper.Config.ShellScripts.AdditionalDirectories) {
+                        scripts = CustomCommandsLoader.SearchForShellScripts(folder, scripts);
+                    }
+                }
+
+                return scripts;
             } catch(Exception ex) {
                 AnsiConsole.MarkupLine("[red]An exception occured during loading of custom commands[/]");
                 AnsiConsole.WriteException(ex);
@@ -36,12 +44,8 @@ namespace Gitpod.Tool.Helper
                 return commands;
             }
 
-            string[] files = Directory.GetFiles(folder);
+            string[] files = Directory.GetFiles(folder, "*.sh");
             foreach (string file in files) {
-                if (file.ToLower().Substring(file.Length - 3) != ".sh") {
-                    continue;
-                }
-
                 var shellScriptSettings = CustomCommandsLoader.ProcessShellScript(file);
                 
                 if (shellScriptSettings == null) {
