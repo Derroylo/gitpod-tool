@@ -13,7 +13,20 @@ namespace Gitpod.Tool.Commands.Config
     {
         public class Settings : CommandSettings
         {
-            
+            [CommandOption("-p|--php")]
+            [Description("Verify php settings")]
+            [DefaultValue(false)]
+            public bool VerifyPhp { get; set; }
+
+            [CommandOption("-s|--services")]
+            [Description("Verify services settings")]
+            [DefaultValue(false)]
+            public bool VerifyServices { get; set; }
+
+            [CommandOption("-S|--shell")]
+            [Description("Verify shell script settings")]
+            [DefaultValue(false)]
+            public bool VerifyShellScripts { get; set; }
         }
 
         public override int Execute(CommandContext context, Settings settings)
@@ -30,16 +43,29 @@ namespace Gitpod.Tool.Commands.Config
 
             GptConfigHelper.ReadConfigFile(true, true);
 
-
             if (GptConfigHelper.Config == null) {
                 AnsiConsole.MarkupLine("[red]The config object is empty, either the config file has no content or an error appeared during parsing of its content.[/]");
 
                 return 0;
             }
 
-            this.OutputPhpSettings();
-            this.OutputServiceSettings();
-            this.OutputShellScriptSettings();
+            bool showSingleOutput = false;
+
+            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts) {
+                showSingleOutput = true;
+            }
+
+            if (!showSingleOutput || settings.VerifyPhp) {
+                this.OutputPhpSettings();
+            }
+            
+            if (!showSingleOutput || settings.VerifyServices) {
+                this.OutputServiceSettings();
+            }
+
+            if (!showSingleOutput || settings.VerifyShellScripts) {
+                this.OutputShellScriptSettings();
+            }
 
             return 0;
         }
