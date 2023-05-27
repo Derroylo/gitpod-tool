@@ -56,7 +56,7 @@ namespace Gitpod.Tool.Commands.Config
             }
             
             if (GptConfigHelper.Config.Php.Config.Count > 0) {
-                AnsiConsole.WriteLine("Settings:");
+                AnsiConsole.WriteLine("Overrides (CLI and Web):");
 
                 // Create a table
                 var settingsTable = new Table();
@@ -66,6 +66,42 @@ namespace Gitpod.Tool.Commands.Config
                 settingsTable.AddColumn("Value");
 
                 foreach(KeyValuePair<string, string> item in GptConfigHelper.Config.Php.Config) {
+                    settingsTable.AddRow(item.Key, item.Value);
+                }
+                
+                // Render the table to the console
+                AnsiConsole.Write(settingsTable);
+            }
+
+            if (GptConfigHelper.Config.Php.ConfigCLI.Count > 0) {
+                AnsiConsole.WriteLine("Overrides CLI:");
+
+                // Create a table
+                var settingsTable = new Table();
+
+                // Add columns
+                settingsTable.AddColumn("Name");
+                settingsTable.AddColumn("Value");
+
+                foreach(KeyValuePair<string, string> item in GptConfigHelper.Config.Php.ConfigCLI) {
+                    settingsTable.AddRow(item.Key, item.Value);
+                }
+                
+                // Render the table to the console
+                AnsiConsole.Write(settingsTable);
+            }
+
+            if (GptConfigHelper.Config.Php.ConfigWeb.Count > 0) {
+                AnsiConsole.WriteLine("Overrides Web:");
+
+                // Create a table
+                var settingsTable = new Table();
+
+                // Add columns
+                settingsTable.AddColumn("Name");
+                settingsTable.AddColumn("Value");
+
+                foreach(KeyValuePair<string, string> item in GptConfigHelper.Config.Php.ConfigWeb) {
                     settingsTable.AddRow(item.Key, item.Value);
                 }
                 
