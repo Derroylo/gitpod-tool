@@ -28,14 +28,29 @@ namespace Gitpod.Tool.Commands.Php
         {
             this.settings = settings;
 
-            if (this.settings.Version == null) {
-                string result = PhpHelper.GetCurrentPhpVersionOutput();
-                AnsiConsole.WriteLine(result);
+            if (this.settings.Version != null) {
+                PhpHelper.SetNewPhpVersion(this.settings.Version, this.settings.Debug);
 
                 return 0;
             }
 
-            PhpHelper.SetNewPhpVersion(this.settings.Version, this.settings.Debug);
+            string result = PhpHelper.GetCurrentPhpVersionOutput();
+            AnsiConsole.WriteLine(result);
+
+            if (!AnsiConsole.Confirm("Do you want to change the active php version?", false)) {
+                return 0;
+            }
+
+            var availablePhpVersions = PhpHelper.GetAvailablePhpVersions();
+
+            var newVersion = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Select the new active php version")
+                        .PageSize(5)
+                        .AddChoices(availablePhpVersions.ToArray<string>())
+                );
+
+            PhpHelper.SetNewPhpVersion(newVersion, this.settings.Debug);
 
             return 0;
         }        

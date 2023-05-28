@@ -11,28 +11,36 @@ namespace Gitpod.Tool.Helper
 {
     class PhpHelper
     {  
+        public static List<string> GetAvailablePhpVersions()
+        {
+            var availablePhpVersions = new List<string>();
+
+            string pattern = @"Alternative: \/usr\/bin\/php([0-9.]+)";
+            string input = ExecCommand.Exec("update-alternatives --query php");
+
+            RegexOptions options = RegexOptions.Multiline;
+        
+            foreach (Match m in Regex.Matches(input, pattern, options))
+            {
+                if (!m.Groups.ContainsKey("1") || m.Groups[1].ToString().Length < 3) {
+                    continue;
+                }
+
+                availablePhpVersions.Insert(0, m.Groups[1].ToString());
+            }
+
+            return availablePhpVersions;
+        }
+
         public static void SetNewPhpVersion(string newVersion, bool isDebug)
         {
             AnsiConsole.Status()
                 .Start("Setting PHP Version to " + newVersion, ctx => 
                 {
-                    Regex regex = new Regex(@"[(0-9)].[(0-9)]");
-                    Match match = regex.Match(newVersion);
+                    var availablePhpVersions = PhpHelper.GetAvailablePhpVersions();
 
-                    if (!match.Success) {
+                    if (!availablePhpVersions.Contains(newVersion)) {
                         AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
-
-                        return;
-                    }
-
-                    string inputCheck = ExecCommand.Exec("update-alternatives --query php");
-
-                    if (!inputCheck.Contains("/usr/bin/php" + newVersion)) {
-                        AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
-                        
-                        if (isDebug) {
-                            AnsiConsole.Write(inputCheck);
-                        }
 
                         return;
                     }

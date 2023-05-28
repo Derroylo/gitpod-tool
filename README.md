@@ -12,11 +12,11 @@ This CLI Tool aims to make it easier to use Gitpod for web development. It is st
 - [x] Ability to update the tool via command
 - [x] Define additional folders that should be included for extending this tool via shell scripts
 - [x] Split php settings for cli and web
+- [x] Select php version via dropdown, similar to services
 - [ ] Enable/Disable xdebug on the fly
 - [ ] Change the nodejs version
 - [ ] Import/Export the database or create/restore Snapshots
 - [ ] Add the ability to save a file and/or folder as env variable
-- [ ] Select php version via dropdown, similar to services
 - [ ] Add php modules via command
 - [ ] Ability to override gpt.yml so a user can define custom services, in case he prefers service x instead of service y
 - [ ] Define env variables via config file
