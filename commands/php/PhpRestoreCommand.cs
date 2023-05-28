@@ -33,7 +33,7 @@ namespace Gitpod.Tool.Commands.Php
         {
             AnsiConsole.Write("Checking if php version has been set via config....");
 
-            if (GptConfigHelper.Config == null || GptConfigHelper.Config.Php == null || GptConfigHelper.Config.Php.Version == String.Empty) {
+            if (GptConfigHelper.Config.Php.Version == String.Empty) {
                 AnsiConsole.MarkupLine("[cyan3]Not found[/]");
 
                 return;
@@ -46,6 +46,16 @@ namespace Gitpod.Tool.Commands.Php
 
         private void RestorePhpIni()
         {
+            AnsiConsole.Write("Checking if php settings has been set via config....");
+
+            if (GptConfigHelper.Config.Php.Config.Count == 0 && GptConfigHelper.Config.Php.ConfigCLI.Count == 0 && GptConfigHelper.Config.Php.ConfigWeb.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
             PhpHelper.UpdatePhpIniFiles(this.settings.Debug);
         }
     }

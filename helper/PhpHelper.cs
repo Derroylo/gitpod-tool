@@ -205,28 +205,36 @@ namespace Gitpod.Tool.Helper
             AnsiConsole.MarkupLine("[green1]Done[/]");
         }
 
-        public static void AddSettingToPhpIni(string name, string value, bool isDebug)
+        public static void AddSettingToPhpIni(string name, string value, bool setForWeb = false, bool setForCLI = false, bool isDebug = false)
         {
             if (name == null || name.Length <= 3 || value == null || value.Length < 1) {
-                AnsiConsole.WriteLine("[red]Invalid name and/or value[/]");
+                AnsiConsole.MarkupLine("[red]Invalid name and/or value[/]");
 
                 return;
             }
 
-            string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
-
-            if (isDebug) {
-                AnsiConsole.WriteLine("Active PHP Version " + currentPhpVersion);
+            if (!setForWeb && !setForCLI) {
+                if (GptConfigHelper.Config.Php.Config.ContainsKey(name)) {
+                    GptConfigHelper.Config.Php.Config[name] = value;
+                } else {
+                    GptConfigHelper.Config.Php.Config.Add(name, value);
+                }
             }
 
-            if (GptConfigHelper.Config == null) {
-                GptConfigHelper.Config = new Classes.Configuration.Configuration();
+            if (setForWeb) {
+                if (GptConfigHelper.Config.Php.ConfigWeb.ContainsKey(name)) {
+                    GptConfigHelper.Config.Php.ConfigWeb[name] = value;
+                } else {
+                    GptConfigHelper.Config.Php.ConfigWeb.Add(name, value);
+                }
             }
 
-            if (GptConfigHelper.Config.Php.Config.ContainsKey(name)) {
-                GptConfigHelper.Config.Php.Config[name] = value;
-            } else {
-                GptConfigHelper.Config.Php.Config.Add(name, value);
+            if (setForCLI) {
+                if (GptConfigHelper.Config.Php.ConfigCLI.ContainsKey(name)) {
+                    GptConfigHelper.Config.Php.ConfigCLI[name] = value;
+                } else {
+                    GptConfigHelper.Config.Php.ConfigCLI.Add(name, value);
+                }
             }
 
             GptConfigHelper.WriteConfigFile();

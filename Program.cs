@@ -80,10 +80,10 @@ namespace Gitpod.Tool
                         .WithDescription("Shows or sets the currently used PHP Version");
                     php.AddCommand<PhpIniCommand>("ini")
                         .WithAlias("i")
-                        .WithDescription("Different functions for PHP ini files like updating or changing values");
+                        .WithDescription("Change the value of a PHP setting.");
                     php.AddCommand<PhpRestoreCommand>("restore")
                         .WithAlias("r")
-                        .WithDescription("Restores a previously set PHP version and their ini files");
+                        .WithDescription("Restores a previously set PHP version and their settings");
                     php.AddCommand<NotYetImplementedCommand>("debug")
                         .WithAlias("d")
                         .WithDescription("Enables/Disables xdebug [red]Not implemented yet[/]");
