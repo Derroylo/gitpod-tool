@@ -17,6 +17,7 @@ using System.IO;
 using YamlDotNet.Serialization;
 using Gitpod.Tool.Commands.Config;
 using Gitpod.Tool.Commands.Services;
+using Gitpod.Tool.Commands.ModeJS;
 
 namespace Gitpod.Tool
 {
@@ -99,11 +100,11 @@ namespace Gitpod.Tool
 
                 config.AddBranch("nodejs", nodejs =>
                 {
-                    nodejs.SetDescription("Different commands to change active nodejs version, etc. [red]Not implemented yet[/]");
+                    nodejs.SetDescription("Different commands to change active nodejs version, etc.");
                     
-                    nodejs.AddCommand<NotYetImplementedCommand>("version")
+                    nodejs.AddCommand<NodeJSVersionCommand>("version")
                         .WithAlias("v")
-                        .WithDescription("Shows or sets the currently used NodeJS Version [red]Not implemented yet[/]");
+                        .WithDescription("Shows or sets the currently used NodeJS Version");
                     nodejs.AddCommand<PhpRestoreCommand>("restore")
                         .WithAlias("r")
                         .WithDescription("Restores a previously set NodeJS version [red]Not implemented yet[/]");

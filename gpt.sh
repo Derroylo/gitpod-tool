@@ -38,3 +38,16 @@ if [ -f "$SCRIPTPATH/.services_stop" ]; then
 
     docker-compose stop
 fi
+
+# Check if we want to change the nodejs version
+if [ -f "$SCRIPTPATH/.nodejs" ]; then
+    version=$(<"$SCRIPTPATH/.nodejs")
+
+    rm "$SCRIPTPATH/.nodejs"
+
+    . ~/.nvm/nvm.sh
+
+    nvm use $version
+    
+    nvm alias default $version
+fi
