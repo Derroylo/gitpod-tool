@@ -18,6 +18,11 @@ namespace Gitpod.Tool.Commands.Config
             [DefaultValue(false)]
             public bool VerifyPhp { get; set; }
 
+            [CommandOption("-n|--nodejs")]
+            [Description("Verify NodeJS settings")]
+            [DefaultValue(false)]
+            public bool VerifyNodeJs { get; set; }
+
             [CommandOption("-s|--services")]
             [Description("Verify services settings")]
             [DefaultValue(false)]
@@ -51,7 +56,7 @@ namespace Gitpod.Tool.Commands.Config
 
             bool showSingleOutput = false;
 
-            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts) {
+            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts || settings.VerifyNodeJs) {
                 showSingleOutput = true;
             }
 
@@ -65,6 +70,10 @@ namespace Gitpod.Tool.Commands.Config
 
             if (!showSingleOutput || settings.VerifyShellScripts) {
                 this.OutputShellScriptSettings();
+            }
+
+            if (!showSingleOutput || settings.VerifyNodeJs) {
+                this.OutputNodeJsSettings();
             }
 
             return 0;
@@ -150,6 +159,18 @@ namespace Gitpod.Tool.Commands.Config
                 
                 // Render the table to the console
                 AnsiConsole.Write(settingsTable);
+            }
+        }
+
+        private void OutputNodeJsSettings()
+        {
+            var rule = new Rule("[red]NodeJS[/]");
+            rule.Justification = Justify.Left;
+            AnsiConsole.Write(rule);
+
+            if (GptConfigHelper.Config.Nodejs.Version != String.Empty) {
+                // Show NodeJS configuration
+                AnsiConsole.WriteLine("Version: " + GptConfigHelper.Config.Nodejs.Version);
             }
         }
 

@@ -9,6 +9,10 @@ namespace Gitpod.Tool.Classes.Configuration
 
         public PhpConfiguration Php { get { return php; } set { php = value; } }
 
+        private NodeJsConfiguration nodejs = new NodeJsConfiguration();
+
+        public NodeJsConfiguration Nodejs { get { return nodejs; } set { nodejs = value; } }
+
         private ServiceConfiguration services = new ServiceConfiguration();
 
         public ServiceConfiguration Services { get { return services; } set { services = value; } }

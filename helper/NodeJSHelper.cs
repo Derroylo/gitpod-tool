@@ -62,6 +62,23 @@ namespace Gitpod.Tool.Helper
                     var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
                     File.WriteAllText(applicationDir + ".nodejs", newVersion);
 
+                    try {
+                        if (GptConfigHelper.Config == null) {
+                            GptConfigHelper.Config = new Classes.Configuration.Configuration();
+                        }
+
+                        if (GptConfigHelper.Config.Nodejs == null) {
+                            GptConfigHelper.Config.Nodejs = new Classes.Configuration.NodeJsConfiguration();
+                        }
+
+                        GptConfigHelper.Config.Nodejs.Version = newVersion;
+                        GptConfigHelper.WriteConfigFile();
+
+                        AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
+                    } catch {
+                        AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[red]Failed[/]");
+                    }
+
                     AnsiConsole.WriteLine("NodeJS has been set to " + newVersion);
                     AnsiConsole.WriteLine("You may need to reload the terminal or open a new one to change to the new active version!");
                 });

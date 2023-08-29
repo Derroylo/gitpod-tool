@@ -5,9 +5,9 @@ using Gitpod.Tool.Helper;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace Gitpod.Tool.Commands.Php
+namespace Gitpod.Tool.Commands.Restore
 {
-    class PhpRestoreCommand : Command<PhpRestoreCommand.Settings>
+    class RestoreAllCommand : Command<RestoreAllCommand.Settings>
     {
         private Settings settings;
 
@@ -25,6 +25,8 @@ namespace Gitpod.Tool.Commands.Php
 
             RestoreHelper.RestorePhpVersion(settings.Debug);
             RestoreHelper.RestorePhpIni(settings.Debug);
+            
+            RestoreHelper.RestoreNodeJsVersion(settings.Debug);
 
             return 0;
         }
