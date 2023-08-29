@@ -6,12 +6,20 @@
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
+# Directory where gpt is located
+GPTDIR=$SCRIPTPATH
+
+# After an update, gpt will be installed in /workspace/.gpt so the update will not be lost after a restart
+if [[ $SCRIPTPATH == "/home/gitpod/.gpt" ]]  && [ -d "/workspace/.gpt" ] && [ -f "/workspace/.gpt/gitpod-tool.dll" ]; then
+	GPTDIR="/workspace/.gpt"
+fi
+
 # run the application and pass all arguments to it
-dotnet "$SCRIPTPATH/gitpod-tool.dll" "$@"
+dotnet "$GPTDIR/gitpod-tool.dll" "$@"
 
 # Check if the update folder exists
 if [ -d "update" ]; then
-    cd $SCRIPTPATH
+    cd $GPTDIR
 
     # Move all files from the update folder to the current one and remove it afterwards
     mv update/* .
@@ -24,26 +32,26 @@ if [ -d "update" ]; then
 fi
 
 # Check if we want to start services
-if [ -f "$SCRIPTPATH/.services_start" ]; then
-    activeServices=$(<"$SCRIPTPATH/.services_start")
+if [ -f "$GPTDIR/.services_start" ]; then
+    activeServices=$(<"$GPTDIR/.services_start")
 
-    rm "$SCRIPTPATH/.services_start"
+    rm "$GPTDIR/.services_start"
 
     docker-compose up $activeServices
 fi
 
 # Check if we want to stop services
-if [ -f "$SCRIPTPATH/.services_stop" ]; then
-    rm "$SCRIPTPATH/.services_stop"
+if [ -f "$GPTDIR/.services_stop" ]; then
+    rm "$GPTDIR/.services_stop"
 
     docker-compose stop
 fi
 
 # Check if we want to change the nodejs version
-if [ -f "$SCRIPTPATH/.nodejs" ]; then
-    version=$(<"$SCRIPTPATH/.nodejs")
+if [ -f "$GPTDIR/.nodejs" ]; then
+    version=$(<"$GPTDIR/.nodejs")
 
-    rm "$SCRIPTPATH/.nodejs"
+    rm "$GPTDIR/.nodejs"
 
     . ~/.nvm/nvm.sh
 
