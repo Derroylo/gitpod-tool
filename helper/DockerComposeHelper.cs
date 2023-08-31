@@ -12,12 +12,11 @@ namespace Gitpod.Tool.Helper
         public static Dictionary<string, Dictionary<string, string>> GetServices(string filename)
         {
             var services = new Dictionary<string, Dictionary<string, string>>();
-            var dockerComposeFile = GptConfigHelper.Config.dockerCompose ?? "docker-compose.yml";
 
             var deserializer = new YamlDotNet.Serialization.DeserializerBuilder()
                                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                                     .Build();
-            dynamic dockerCompose = deserializer.Deserialize<dynamic>(File.ReadAllText(dockerComposeFile));
+            dynamic dockerCompose = deserializer.Deserialize<dynamic>(File.ReadAllText(filename));
 
             foreach (KeyValuePair<object, object> item in dockerCompose["services"]) {
                 var serviceInfos = new Dictionary<string, string>();

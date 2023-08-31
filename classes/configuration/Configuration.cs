@@ -12,5 +12,9 @@ namespace Gitpod.Tool.Classes.Configuration
         private ServiceConfiguration services = new ServiceConfiguration();
 
         public ServiceConfiguration Services { get { return services; } set { services = value; } }
+
+        private String dockerComposeFile = null;
+
+        public String DockerComposeFile { get { return this.dockerComposeFile; } set { this.dockerComposeFile = value; } }
     }
 }
