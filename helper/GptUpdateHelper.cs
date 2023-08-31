@@ -23,11 +23,25 @@ namespace Gitpod.Tool.Helper
 
             GitHubClient client = new GitHubClient(new ProductHeaderValue("SomeName"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Derroylo", "gitpod-tool");
-            IReadOnlyList<ReleaseAsset> assets = releases[0].Assets;
+
+            bool allowPreReleases = GptConfigHelper.Config.Config.AllowPreReleases;
+            Release lastRelease = null;
+
+            foreach (Release release in releases) {
+                if (!allowPreReleases && release.Prerelease) {
+                    continue;
+                }
+
+                if (null == lastRelease) {
+                    lastRelease = release;
+                }
+            }
+
+            IReadOnlyList<ReleaseAsset> assets = lastRelease.Assets;
 
             JObject tmp = new JObject(
                 new JProperty("last_check", DateTime.Now.ToString()),
-                new JProperty("last_release", releases[0].TagName.Replace("v", "")),
+                new JProperty("last_release", lastRelease.TagName.Replace("v", "")),
                 new JProperty("download_url", assets[0].BrowserDownloadUrl)
             );
 
@@ -36,6 +50,7 @@ namespace Gitpod.Tool.Helper
 
         public static async Task<string> GetLatestVersion(bool forceUpdate = false)
         {
+            forceUpdate = true;
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
 
             if (!File.Exists(applicationDir + "releases.json") || forceUpdate) {

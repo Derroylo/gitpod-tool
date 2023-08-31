@@ -5,6 +5,10 @@ namespace Gitpod.Tool.Classes.Configuration
 {
     class Configuration
     {
+        private ConfigConfiguration config = new ConfigConfiguration();
+
+        public ConfigConfiguration Config { get { return config; } set { config = value; } }
+
         private PhpConfiguration php = new PhpConfiguration();
 
         public PhpConfiguration Php { get { return php; } set { php = value; } }
