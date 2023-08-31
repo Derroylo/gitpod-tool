@@ -15,7 +15,7 @@ namespace Gitpod.Tool.Commands.Services
     {
         public class Settings : CommandSettings
         {
-            [CommandOption("--detached")]
+            [CommandOption("-d|--detached")]
             [Description("Outputs debug information")]
             [DefaultValue(false)]
             public bool Detached { get; set; }
