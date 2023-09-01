@@ -20,10 +20,8 @@ namespace Gitpod.Tool.Commands.Services
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            var dockerComposeFile = GptConfigHelper.Config.DockerComposeFile ?? "docker-compose.yml";
-
-            if (!File.Exists(dockerComposeFile)) {
-                AnsiConsole.MarkupLine(String.Format("[red]{0} not found[/]", dockerComposeFile));
+            if (!File.Exists(DockerComposeHelper.GetFile())) {
+                AnsiConsole.MarkupLine(String.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
 
                 return 0;
             }

@@ -9,6 +9,11 @@ namespace Gitpod.Tool.Helper
 {
     class DockerComposeHelper
     {
+        public static string GetFile()
+        {
+            return GptConfigHelper.Config.Services.File ?? "docker-compose.yml";
+        }
+
         public static Dictionary<string, Dictionary<string, string>> GetServices(string filename)
         {
             var services = new Dictionary<string, Dictionary<string, string>>();

@@ -8,5 +8,9 @@ namespace Gitpod.Tool.Classes.Configuration
         private List<string> active = new List<string>();
 
         public List<string> Active { get { return this.active; } set { this.active = value; }}
+        
+        private String file = null;
+
+        public String File { get { return this.file; } set { this.file = value; } }
     }
 }
