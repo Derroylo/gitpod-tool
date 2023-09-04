@@ -57,6 +57,9 @@ namespace Gitpod.Tool
                 config.AddCommand<SelfUpdateCommand>("update")
                     .WithDescription("Update this tool to the latest version");
 
+                config.AddCommand<AskCommand>("ask")
+                    .WithDescription("Ask the gitpod ai");
+
                 config.AddBranch("config", config =>
                 {
                     config.SetDescription("Creates or verify the configuration file");
