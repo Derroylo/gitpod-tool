@@ -23,13 +23,13 @@ namespace Gitpod.Tool.Commands.Services
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            if (!File.Exists("docker-compose.yml")) {
-                AnsiConsole.MarkupLine("[red]docker-compose.yml not found[/]");
+            if (!File.Exists(DockerComposeHelper.GetFile())) {
+                AnsiConsole.MarkupLine(String.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
 
                 return 0;
             }
 
-            var services = DockerComposeHelper.GetServices("docker-compose.yml");
+            var services = DockerComposeHelper.GetServices(DockerComposeHelper.GetFile());
 
             if (GptConfigHelper.Config.Services == null || GptConfigHelper.Config.Services.Active.Count == 0) {
                 AnsiConsole.WriteLine("[red]No active services selected[/]");
