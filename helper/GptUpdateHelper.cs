@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.IO.Compression;
+using Semver;
 
 namespace Gitpod.Tool.Helper
 {
@@ -28,6 +29,10 @@ namespace Gitpod.Tool.Helper
             Release lastRelease = null;
 
             foreach (Release release in releases) {
+                if (release.Draft) {
+                    continue;
+                }
+
                 if (!allowPreReleases && release.Prerelease) {
                     continue;
                 }
@@ -50,7 +55,6 @@ namespace Gitpod.Tool.Helper
 
         public static async Task<string> GetLatestVersion(bool forceUpdate = false)
         {
-            forceUpdate = true;
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
 
             if (!File.Exists(applicationDir + "releases.json") || forceUpdate) {
@@ -78,10 +82,10 @@ namespace Gitpod.Tool.Helper
             var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             var latestVersion  = (GptUpdateHelper.GetLatestVersion()).Result;
 
-            Version localVersion = new Version(currentVersion);
-            Version latestRelease = new Version(latestVersion);
+            SemVersion localVersion = SemVersion.Parse(currentVersion, SemVersionStyles.Strict);
+            SemVersion latestRelease = SemVersion.Parse(latestVersion, SemVersionStyles.Strict);
 
-            int versionComparison = localVersion.CompareTo(latestRelease);
+            int versionComparison = localVersion.CompareSortOrderTo(latestRelease);
 
             if (versionComparison < 0) {
                 return true;
