@@ -11,28 +11,36 @@ namespace Gitpod.Tool.Helper
 {
     class PhpHelper
     {  
+        public static List<string> GetAvailablePhpVersions()
+        {
+            var availablePhpVersions = new List<string>();
+
+            string pattern = @"Alternative: \/usr\/bin\/php([0-9.]+)";
+            string input = ExecCommand.Exec("update-alternatives --query php");
+
+            RegexOptions options = RegexOptions.Multiline;
+        
+            foreach (Match m in Regex.Matches(input, pattern, options))
+            {
+                if (!m.Groups.ContainsKey("1") || m.Groups[1].ToString().Length < 3) {
+                    continue;
+                }
+
+                availablePhpVersions.Insert(0, m.Groups[1].ToString());
+            }
+
+            return availablePhpVersions;
+        }
+
         public static void SetNewPhpVersion(string newVersion, bool isDebug)
         {
             AnsiConsole.Status()
                 .Start("Setting PHP Version to " + newVersion, ctx => 
                 {
-                    Regex regex = new Regex(@"[(0-9)].[(0-9)]");
-                    Match match = regex.Match(newVersion);
+                    var availablePhpVersions = PhpHelper.GetAvailablePhpVersions();
 
-                    if (!match.Success) {
+                    if (!availablePhpVersions.Contains(newVersion)) {
                         AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
-
-                        return;
-                    }
-
-                    string inputCheck = ExecCommand.Exec("update-alternatives --query php");
-
-                    if (!inputCheck.Contains("/usr/bin/php" + newVersion)) {
-                        AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
-                        
-                        if (isDebug) {
-                            AnsiConsole.Write(inputCheck);
-                        }
 
                         return;
                     }
@@ -162,9 +170,9 @@ namespace Gitpod.Tool.Helper
 
             AnsiConsole.Write("Generating custom.ini....");
 
-            var customIniPath = PhpHelper.GenerateCustomIniFilesFromConfig();
+            var customIniFiles = PhpHelper.GenerateCustomIniFilesFromConfig();
 
-            if (customIniPath == String.Empty) {
+            if (customIniFiles.Count == 0) {
                 AnsiConsole.MarkupLine("[cyan3]No custom settings found[/]");
 
                 return;
@@ -172,57 +180,69 @@ namespace Gitpod.Tool.Helper
 
             AnsiConsole.MarkupLine("[green1]Done[/]");
            
-            AnsiConsole.Write("Copy the custom.ini to the target directory....");
+            if (customIniFiles.ContainsKey("cli")) {
+                AnsiConsole.Write("Copy the custom_cli.ini to the target directory....");
 
-            string targetFile = "/etc/php/" + currentPhpVersion + "/cli/conf.d/custom.ini";
-            
-            if (isDebug) {
-                AnsiConsole.WriteLine("Copying from \"" + customIniPath + "\" to \"" + targetFile + "\"");
+                string targetFile = "/etc/php/" + currentPhpVersion + "/cli/conf.d/custom.ini";
+                
+                if (isDebug) {
+                    AnsiConsole.WriteLine("Copying from \"" + customIniFiles["cli"] + "\" to \"" + targetFile + "\"");
+                }
+                
+                ExecCommand.Exec("sudo cp " + customIniFiles["cli"] + " " + targetFile);
             }
-            
-            ExecCommand.Exec("sudo cp " + customIniPath + " " + targetFile);
 
-            targetFile = "/etc/php/" + currentPhpVersion + "/apache2/conf.d/custom.ini";
-            
-            if (isDebug) {
-                AnsiConsole.WriteLine("Copying from \"" + customIniPath + "\" to \"" + targetFile + "\"");
-            }
-            
-            ExecCommand.Exec("sudo cp " + customIniPath + " " + targetFile);
+            if (customIniFiles.ContainsKey("web")) {
+                string targetFile = "/etc/php/" + currentPhpVersion + "/apache2/conf.d/custom.ini";
+                
+                if (isDebug) {
+                    AnsiConsole.WriteLine("Copying from \"" + customIniFiles["web"] + "\" to \"" + targetFile + "\"");
+                }
+                
+                ExecCommand.Exec("sudo cp " + customIniFiles["web"] + " " + targetFile);
 
-            targetFile = "/etc/php/" + currentPhpVersion + "/apache2/conf.d/custom.ini";
-            
-            if (isDebug) {
-                AnsiConsole.WriteLine("Copying from \"" + customIniPath + "\" to \"" + targetFile + "\"");
+                targetFile = "/etc/php/" + currentPhpVersion + "/apache2/conf.d/custom.ini";
+                
+                if (isDebug) {
+                    AnsiConsole.WriteLine("Copying from \"" + customIniFiles["web"] + "\" to \"" + targetFile + "\"");
+                }
+                
+                ExecCommand.Exec("sudo cp " + customIniFiles["web"] + " " + targetFile);
             }
-            
-            ExecCommand.Exec("sudo cp " + customIniPath + " " + targetFile);
 
             AnsiConsole.MarkupLine("[green1]Done[/]");
         }
 
-        public static void AddSettingToPhpIni(string name, string value, bool isDebug)
+        public static void AddSettingToPhpIni(string name, string value, bool setForWeb = false, bool setForCLI = false, bool isDebug = false)
         {
             if (name == null || name.Length <= 3 || value == null || value.Length < 1) {
-                AnsiConsole.WriteLine("[red]Invalid name and/or value[/]");
+                AnsiConsole.MarkupLine("[red]Invalid name and/or value[/]");
 
                 return;
             }
 
-            string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
-
-            if (isDebug) {
-                AnsiConsole.WriteLine("Active PHP Version " + currentPhpVersion);
+            if (!setForWeb && !setForCLI) {
+                if (GptConfigHelper.Config.Php.Config.ContainsKey(name)) {
+                    GptConfigHelper.Config.Php.Config[name] = value;
+                } else {
+                    GptConfigHelper.Config.Php.Config.Add(name, value);
+                }
             }
 
-            if (GptConfigHelper.Config == null) {
-                GptConfigHelper.Config = new Classes.Configuration.Configuration();
+            if (setForWeb) {
+                if (GptConfigHelper.Config.Php.ConfigWeb.ContainsKey(name)) {
+                    GptConfigHelper.Config.Php.ConfigWeb[name] = value;
+                } else {
+                    GptConfigHelper.Config.Php.ConfigWeb.Add(name, value);
+                }
             }
 
-            if (GptConfigHelper.Config.Php.Config.ContainsKey(name)) {
-                GptConfigHelper.Config.Php.Config[name] = value;
-            } else {
-                GptConfigHelper.Config.Php.Config.Add(name, value);
+            if (setForCLI) {
+                if (GptConfigHelper.Config.Php.ConfigCLI.ContainsKey(name)) {
+                    GptConfigHelper.Config.Php.ConfigCLI[name] = value;
+                } else {
+                    GptConfigHelper.Config.Php.ConfigCLI.Add(name, value);
+                }
             }
 
             GptConfigHelper.WriteConfigFile();
@@ -233,32 +253,73 @@ namespace Gitpod.Tool.Helper
             ExecCommand.Exec("apachectl restart");
         }
 
-        private static string GenerateCustomIniFilesFromConfig()
+        private static Dictionary<string, string> GenerateCustomIniFilesFromConfig()
         {
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
             var iniSettingsFolder = applicationDir + "/php";
+            var customFilesWithPath = new Dictionary<string, string>();
 
             if (!Directory.Exists(iniSettingsFolder)) {
                 Directory.CreateDirectory(iniSettingsFolder);
             }
 
-            if (GptConfigHelper.Config == null) {
-                GptConfigHelper.Config = new Classes.Configuration.Configuration();
+            if (GptConfigHelper.Config.Php.Config.Count == 0 && GptConfigHelper.Config.Php.ConfigCLI.Count == 0 && GptConfigHelper.Config.Php.ConfigWeb.Count == 0) {
+                return customFilesWithPath;
             }
 
-            if (GptConfigHelper.Config.Php.Config.Count == 0) {
-                return String.Empty;
+            // Combine config and configWeb to a custom.ini for web
+            var configWeb = new Dictionary<string, string>(GptConfigHelper.Config.Php.ConfigWeb);
+            var customWeb = new Dictionary<string, string>(GptConfigHelper.Config.Php.Config);
+
+            foreach (KeyValuePair<string, string> item in customWeb) {
+                if (configWeb.ContainsKey(item.Key)) {
+                    customWeb[item.Key] = configWeb[item.Key];
+                    configWeb.Remove(item.Key);
+                }
+            }
+
+            if (configWeb.Count > 0) {
+                customWeb = customWeb.Union(configWeb)
+                                .ToLookup(x => x.Key, x => x.Value)
+                                .ToDictionary(x => x.Key, g => g.First());
             }
 
             string customIniContent = String.Empty;
 
-            foreach (KeyValuePair<string, string> item in GptConfigHelper.Config.Php.Config) {
+            foreach (KeyValuePair<string, string> item in customWeb) {
                 customIniContent += item.Key + " = " + item.Value + "\n";
             }
 
-            File.WriteAllText(iniSettingsFolder + "/custom.ini", customIniContent);
+            File.WriteAllText(iniSettingsFolder + "/custom_web.ini", customIniContent);
+            customFilesWithPath.Add("web", iniSettingsFolder + "/custom_web.ini");
 
-            return iniSettingsFolder + "/custom.ini";
+            // Combine config and configCLI to a custom.ini for CLI
+            var configCLI = new Dictionary<string, string>(GptConfigHelper.Config.Php.ConfigCLI);
+            var customCLI = new Dictionary<string, string>(GptConfigHelper.Config.Php.Config);
+
+            foreach (KeyValuePair<string, string> item in customCLI) {
+                if (configCLI.ContainsKey(item.Key)) {
+                    customCLI[item.Key] = configCLI[item.Key];
+                    configCLI.Remove(item.Key);
+                }
+            }
+
+            if (configCLI.Count > 0) {
+                customCLI = customCLI.Union(configCLI)
+                                .ToLookup(x => x.Key, x => x.Value)
+                                .ToDictionary(x => x.Key, g => g.First());
+            }
+
+            customIniContent = String.Empty;
+
+            foreach (KeyValuePair<string, string> item in customCLI) {
+                customIniContent += item.Key + " = " + item.Value + "\n";
+            }
+
+            File.WriteAllText(iniSettingsFolder + "/custom_cli.ini", customIniContent);
+            customFilesWithPath.Add("cli", iniSettingsFolder + "/custom_cli.ini");
+
+            return customFilesWithPath;
         }
     }
 }

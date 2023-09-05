@@ -13,20 +13,19 @@ namespace Gitpod.Tool.Commands.Php
 
         public class Settings : CommandSettings
         {
-            [CommandArgument(0, "[Mode]")]
-            [Description("'update' for updating the php.ini files for apache/cli, 'set' for changing a value or empty to show the path")]
-            [DefaultValue("")]
-            public string Mode { get; set; }
+            [CommandArgument(0, "[settings]")]
+            [Description("Define one or multiple settings")]
+            public string[] PhpSettings { get; set; }
 
-            [CommandArgument(1, "[IniSettingName]")]
-            [Description("When using 'set', this is the name of the setting you want to change")]
-            [DefaultValue("")]
-            public string IniSettingName { get; set; }
+            [CommandOption("-w|--web")]
+            [Description("Applies the given settings for web")]
+            [DefaultValue(false)]
+            public bool SetForWeb { get; set; }
 
-            [CommandArgument(2, "[IniSettingValue]")]
-            [Description("When using 'set', this is the new value")]
-            [DefaultValue("")]
-            public string IniSettingValue { get; set; }
+            [CommandOption("-c|--cli")]
+            [Description("Applies the given settings for CLI")]
+            [DefaultValue(false)]
+            public bool SetForCLI { get; set; }
 
             [CommandOption("-d|--debug")]
             [Description("Outputs debug information")]
@@ -34,37 +33,90 @@ namespace Gitpod.Tool.Commands.Php
             public bool Debug { get; set; }
         }
         
-        public override ValidationResult Validate(CommandContext context, Settings settings)
-        {
-            string[] allowedModes = {"update", "set"};
-
-            if (settings.Mode != "" && !allowedModes.Contains(settings.Mode))
-            {
-                return ValidationResult.Error($"Mode not allowed - {settings.Mode}");
-            }
-
-            return base.Validate(context, settings);
-        }
-
-
         public override int Execute(CommandContext context, Settings settings)
         {
             this.settings = settings;
 
-            switch (settings.Mode)
-            {
-                case "update":
-                    PhpHelper.UpdatePhpIniFiles(settings.Debug);
+            if (settings.PhpSettings != null && settings.PhpSettings.Length > 0) {
+                return this.ApplySettingsViaOption(settings.PhpSettings, settings.SetForWeb, settings.SetForCLI);
+            }
 
-                    return 0;
+            AnsiConsole.WriteLine(PhpHelper.GetPhpIniPath());
 
-                case "set":
-                    PhpHelper.AddSettingToPhpIni(settings.IniSettingName, settings.IniSettingValue, settings.Debug);
+            if (!AnsiConsole.Confirm("Do you want to change a php setting?", false)) {
+                return 0;
+            }
 
-                    return 0;
-                default:
-                    AnsiConsole.WriteLine(PhpHelper.GetPhpIniPath());
-                    break;
+            AskUserForPhpSettings();
+
+            return 0;
+        }
+
+        private void AskUserForPhpSettings()
+        {
+            bool canceled = false;
+
+            do {
+                var settingName = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Name of the setting:")
+                        .ValidationErrorMessage("[red]That´s not a valid name for a setting[/]")
+                        .Validate(setting =>
+                        {
+                            return setting.Length switch
+                            {
+                                <= 3 => ValidationResult.Error("[red]The name must be at least 3 chars long.[/]"),
+                                _ => ValidationResult.Success(),
+                            };
+                        }
+                    )
+                );
+
+                var settingValue = AnsiConsole.Prompt(
+                    new TextPrompt<string>("New value of the setting: ")
+                        .ValidationErrorMessage("[red]That´s not a valid value[/]")
+                        .Validate(setting =>
+                        {
+                            return setting.Length switch
+                            {
+                                <= 0 => ValidationResult.Error("[red]The value must be at least 1 chars long.[/]"),
+                                _ => ValidationResult.Success(),
+                            };
+                        }
+                    )
+                );
+
+                var scope = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("For which scope should the setting be applied to?")
+                        .PageSize(3)
+                        .AddChoices(new[] {
+                            "Web", "CLI", "both",
+                        }
+                    )
+                );
+
+                PhpHelper.AddSettingToPhpIni(settingName, settingValue, scope == "Web", scope == "CLI", this.settings.Debug);
+
+                if (!AnsiConsole.Confirm("Do you want to change more php settings?", false)) {
+                    canceled = true;
+                }
+            } while (!canceled);
+        }
+
+        private int ApplySettingsViaOption(string[] newSettings, bool setForWeb = false, bool setForCLI = false)
+        {
+            foreach (string setting in newSettings) {
+                AnsiConsole.WriteLine(setting);
+
+                var splittedSetting = setting.Split("=");
+
+                if (splittedSetting.Length != 2) {
+                    AnsiConsole.MarkupLine("[red]\"" + setting + "\" is not a valid value.[/] It needs to be written in the format \"setting=newValue\". For example \"gpt php ini memory_limit=512M\"");
+
+                    return 1;
+                }
+
+                PhpHelper.AddSettingToPhpIni(splittedSetting[0], splittedSetting[1], setForWeb, setForCLI, this.settings.Debug);
             }
 
             return 0;

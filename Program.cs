@@ -17,6 +17,9 @@ using System.IO;
 using YamlDotNet.Serialization;
 using Gitpod.Tool.Commands.Config;
 using Gitpod.Tool.Commands.Services;
+using Gitpod.Tool.Commands.ModeJS;
+using Gitpod.Tool.Commands.Restore;
+using Gitpod.Tool.Commands.NodeJS;
 
 namespace Gitpod.Tool
 {
@@ -54,6 +57,9 @@ namespace Gitpod.Tool
                 config.AddCommand<SelfUpdateCommand>("update")
                     .WithDescription("Update this tool to the latest version");
 
+                config.AddCommand<AskCommand>("ask")
+                    .WithDescription("Ask the gitpod ai");
+
                 config.AddBranch("config", config =>
                 {
                     config.SetDescription("Creates or verify the configuration file");
@@ -80,10 +86,10 @@ namespace Gitpod.Tool
                         .WithDescription("Shows or sets the currently used PHP Version");
                     php.AddCommand<PhpIniCommand>("ini")
                         .WithAlias("i")
-                        .WithDescription("Different functions for PHP ini files like updating or changing values");
+                        .WithDescription("Change the value of a PHP setting.");
                     php.AddCommand<PhpRestoreCommand>("restore")
                         .WithAlias("r")
-                        .WithDescription("Restores a previously set PHP version and their ini files");
+                        .WithDescription("Restores a previously set PHP version and their settings");
                     php.AddCommand<NotYetImplementedCommand>("debug")
                         .WithAlias("d")
                         .WithDescription("Enables/Disables xdebug [red]Not implemented yet[/]");
@@ -99,14 +105,14 @@ namespace Gitpod.Tool
 
                 config.AddBranch("nodejs", nodejs =>
                 {
-                    nodejs.SetDescription("Different commands to change active nodejs version, etc. [red]Not implemented yet[/]");
+                    nodejs.SetDescription("Different commands to change active nodejs version, etc.");
                     
-                    nodejs.AddCommand<NotYetImplementedCommand>("version")
+                    nodejs.AddCommand<NodeJSVersionCommand>("version")
                         .WithAlias("v")
-                        .WithDescription("Shows or sets the currently used NodeJS Version [red]Not implemented yet[/]");
-                    nodejs.AddCommand<PhpRestoreCommand>("restore")
+                        .WithDescription("Shows or sets the currently used NodeJS Version");
+                    nodejs.AddCommand<NodeJSRestoreCommand>("restore")
                         .WithAlias("r")
-                        .WithDescription("Restores a previously set NodeJS version [red]Not implemented yet[/]");
+                        .WithDescription("Restores a previously set NodeJS version");
 
                     if (addidionalCommands.ContainsKey("nodejs")) {
                         foreach (CustomCommand cmd in addidionalCommands["nodejs"].Commands) {
@@ -181,7 +187,30 @@ namespace Gitpod.Tool
                     }
                 });
 
-                var reservedBranches = new List<String>() { "default", "config", "php", "nodejs", "apache", "mysql", "services" };
+                config.AddBranch("restore", restore =>
+                {
+                    restore.SetDescription("Restore settings separate for nodejs or php, or for all at once ");
+                    
+                    restore.AddCommand<RestoreAllCommand>("all")
+                        .WithAlias("a")
+                        .WithDescription("Restore all settings");
+                    restore.AddCommand<RestorePhpCommand>("php")
+                        .WithAlias("p")
+                        .WithDescription("Restore settings for php");
+                    restore.AddCommand<RestoreNodeJsCommand>("nodejs")
+                        .WithAlias("n")
+                        .WithDescription("Restore settings for NodeJS");
+
+                    if (addidionalCommands.ContainsKey("restore")) {
+                        foreach (CustomCommand cmd in addidionalCommands["restore"].Commands) {
+                            restore.AddCommand<ShellFileCommand>(cmd.Command)
+                                .WithData(cmd)
+                                .WithDescription(cmd.Description);
+                        }
+                    }
+                });
+
+                var reservedBranches = new List<String>() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore" };
 
                 // Add branches that haven´t been added yet via custom commands
                 foreach (KeyValuePair<string, CustomBranch> entry in addidionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {
