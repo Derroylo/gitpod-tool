@@ -7,6 +7,7 @@ using Gitpod.Tool.Helper;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using YamlDotNet.Serialization.NamingConventions;
+using System;
 
 namespace Gitpod.Tool.Commands.Services
 {
@@ -19,13 +20,13 @@ namespace Gitpod.Tool.Commands.Services
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            if (!File.Exists("docker-compose.yml")) {
-                AnsiConsole.MarkupLine("[red]docker-compose.yml not found[/]");
+            if (!File.Exists(DockerComposeHelper.GetFile())) {
+                AnsiConsole.MarkupLine(String.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
 
                 return 0;
             }
 
-            var services = DockerComposeHelper.GetServices("docker-compose.yml");
+            var services = DockerComposeHelper.GetServices(DockerComposeHelper.GetFile());
 
             var servicesTable = new Table();
 

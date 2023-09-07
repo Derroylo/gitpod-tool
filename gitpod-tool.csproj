@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <Authors>Carsten Lohmann</Authors>
     <Product>Gitpod Tool or short gpt</Product>
     <Description>A little tool to make life easier with gitpod and web development</Description>
@@ -14,6 +14,7 @@
   <ItemGroup>
     <PackageReference Include="newtonsoft.json" Version="13.0.3" />
     <PackageReference Include="octokit" Version="5.1.0" />
+    <PackageReference Include="Semver" Version="2.3.0" />
     <PackageReference Include="Spectre.Console" Version="0.46.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.46.0" />
     <PackageReference Include="yamldotnet" Version="13.1.0" />
