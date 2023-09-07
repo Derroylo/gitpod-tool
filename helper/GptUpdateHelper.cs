@@ -79,7 +79,7 @@ namespace Gitpod.Tool.Helper
 
         public static bool IsUpdateAvailable()
         {
-            var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
             var latestVersion  = (GptUpdateHelper.GetLatestVersion()).Result;
 
             SemVersion localVersion = SemVersion.Parse(currentVersion, SemVersionStyles.Strict);

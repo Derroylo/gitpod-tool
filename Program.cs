@@ -28,7 +28,7 @@ namespace Gitpod.Tool
         static void Main(string[] args)
         {
             var app     = new CommandApp();
-            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
 
             // Check for updates
             var latestVersion = GptUpdateHelper.GetLatestVersion().Result;
