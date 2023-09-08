@@ -1,26 +1,7 @@
 # CLI Tool for Gitpod
 
 ## Purpose
-This CLI Tool aims to make it easier to use Gitpod for web development. It is still in it´s very early stages of development but this are the planned or already implemented features:
-
-- [x] Change and persist PHP Version on the fly
-- [x] Change and persist PHP Settings on the fly
-- [x] Start, Restart and Stop the Apache Webserver
-- [x] Define which services should be started from docker-compose
-- [x] Make the Tool extendable via shell scripts
-- [x] Save the tool configurations in a yml file
-- [x] Ability to update the tool via command
-- [x] Define additional folders that should be included for extending this tool via shell scripts
-- [x] Split php settings for cli and web
-- [x] Select php version via dropdown, similar to services
-- [x] Change the nodejs version
-- [X] Persist updates of gpt between workspace restarts
-- [x] Add a general restore command which restores all settings instead of calling gpt php restore, gpt nodejs restore etc.
-- [ ] Enable/Disable xdebug on the fly
-- [ ] Import/Export the database or create/restore Snapshots
-- [ ] Add the ability to save a file and/or folder as env variable
-- [ ] Add php modules via command
-- [ ] Implement a method to reuse the index for phpstorm within prebuilds (phpstorm can use a shared index)
+This CLI Tool aims to make it easier to use Gitpod for web development.
 
 ## Documentation
 The documentation can be found under [GPT Documentation](https://derroylo.github.io). If you want to try it, open [Shopware workspace sample](https://github.com/Derroylo/shopware-workspace-sample) in gitpod. In the terminal type `gpt -h` to get a list of the available commands.
