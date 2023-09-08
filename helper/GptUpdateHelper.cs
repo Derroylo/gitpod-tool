@@ -21,11 +21,12 @@ namespace Gitpod.Tool.Helper
         private static async Task UpdateCacheFile()
         {
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
+            bool allowPreReleases = GptConfigHelper.Config.Config.AllowPreReleases;
 
             GitHubClient client = new GitHubClient(new ProductHeaderValue("SomeName"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Derroylo", "gitpod-tool");
 
-            bool allowPreReleases = GptConfigHelper.Config.Config.AllowPreReleases;
+            
             Release lastRelease = null;
 
             foreach (Release release in releases) {
