@@ -30,6 +30,9 @@ namespace Gitpod.Tool
             var app     = new CommandApp();
             var version = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
 
+            // Load the configuration file if it exits
+            GptConfigHelper.ReadConfigFile();
+
             // Check for updates
             var latestVersion = GptUpdateHelper.GetLatestVersion().Result;
             var isUpdateAvailable = GptUpdateHelper.IsUpdateAvailable();
@@ -43,11 +46,8 @@ namespace Gitpod.Tool
                 AnsiConsole.MarkupLine("");
             }
 
-            // Load the configuration file if it exits
-            GptConfigHelper.ReadConfigFile();
-
             // Load additional commands that are defined within shell scripts
-            var addidionalCommands = CustomCommandsLoader.Load();
+            var additionalCommands = CustomCommandsLoader.Load();
 
             app.Configure(config =>
             {
@@ -68,8 +68,8 @@ namespace Gitpod.Tool
                         .WithAlias("v")
                         .WithDescription(@"Tries to read the config file and shows it`s content");                    
 
-                    if (addidionalCommands.ContainsKey("config")) {
-                        foreach (CustomCommand cmd in addidionalCommands["config"].Commands) {
+                    if (additionalCommands.ContainsKey("config")) {
+                        foreach (CustomCommand cmd in additionalCommands["config"].Commands) {
                             config.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -94,8 +94,8 @@ namespace Gitpod.Tool
                         .WithAlias("d")
                         .WithDescription("Enables/Disables xdebug [red]Not implemented yet[/]");
 
-                    if (addidionalCommands.ContainsKey("php")) {
-                        foreach (CustomCommand cmd in addidionalCommands["php"].Commands) {
+                    if (additionalCommands.ContainsKey("php")) {
+                        foreach (CustomCommand cmd in additionalCommands["php"].Commands) {
                             php.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -114,8 +114,8 @@ namespace Gitpod.Tool
                         .WithAlias("r")
                         .WithDescription("Restores a previously set NodeJS version");
 
-                    if (addidionalCommands.ContainsKey("nodejs")) {
-                        foreach (CustomCommand cmd in addidionalCommands["nodejs"].Commands) {
+                    if (additionalCommands.ContainsKey("nodejs")) {
+                        foreach (CustomCommand cmd in additionalCommands["nodejs"].Commands) {
                             nodejs.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -136,8 +136,8 @@ namespace Gitpod.Tool
                     apache.AddCommand<ApacheRestartCommand>("restart")
                         .WithDescription("Restarts apache");
 
-                    if (addidionalCommands.ContainsKey("apache")) {
-                        foreach (CustomCommand cmd in addidionalCommands["apache"].Commands) {
+                    if (additionalCommands.ContainsKey("apache")) {
+                        foreach (CustomCommand cmd in additionalCommands["apache"].Commands) {
                             apache.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -156,8 +156,8 @@ namespace Gitpod.Tool
                     mysql.AddCommand<NotYetImplementedCommand>("snapshot")
                         .WithDescription("Create/Restore a snapshot of the database. Useful to make a backup before you test something and want to restore the old state fast if anything goes wrong [red]Not implemented yet[/]");
 
-                    if (addidionalCommands.ContainsKey("mysql")) {
-                        foreach (CustomCommand cmd in addidionalCommands["mysql"].Commands) {
+                    if (additionalCommands.ContainsKey("mysql")) {
+                        foreach (CustomCommand cmd in additionalCommands["mysql"].Commands) {
                             mysql.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -178,8 +178,8 @@ namespace Gitpod.Tool
                     services.AddCommand<SelectServicesCommand>("select")
                         .WithDescription("Select which services should be active");
 
-                    if (addidionalCommands.ContainsKey("services")) {
-                        foreach (CustomCommand cmd in addidionalCommands["services"].Commands) {
+                    if (additionalCommands.ContainsKey("services")) {
+                        foreach (CustomCommand cmd in additionalCommands["services"].Commands) {
                             services.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -201,8 +201,8 @@ namespace Gitpod.Tool
                         .WithAlias("n")
                         .WithDescription("Restore settings for NodeJS");
 
-                    if (addidionalCommands.ContainsKey("restore")) {
-                        foreach (CustomCommand cmd in addidionalCommands["restore"].Commands) {
+                    if (additionalCommands.ContainsKey("restore")) {
+                        foreach (CustomCommand cmd in additionalCommands["restore"].Commands) {
                             restore.AddCommand<ShellFileCommand>(cmd.Command)
                                 .WithData(cmd)
                                 .WithDescription(cmd.Description);
@@ -213,7 +213,7 @@ namespace Gitpod.Tool
                 var reservedBranches = new List<String>() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore" };
 
                 // Add branches that haven´t been added yet via custom commands
-                foreach (KeyValuePair<string, CustomBranch> entry in addidionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {
+                foreach (KeyValuePair<string, CustomBranch> entry in additionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {
                     config.AddBranch(entry.Value.Name, branch => 
                     {
                         branch.SetDescription(entry.Value.Description);
@@ -227,8 +227,8 @@ namespace Gitpod.Tool
                 }
 
                 // Add all commands without branches
-                if (addidionalCommands.ContainsKey("default")) {
-                    foreach (CustomCommand cmd in addidionalCommands["default"].Commands) {
+                if (additionalCommands.ContainsKey("default")) {
+                    foreach (CustomCommand cmd in additionalCommands["default"].Commands) {
                         config.AddCommand<ShellFileCommand>(cmd.Command)
                             .WithData(cmd)
                             .WithDescription(cmd.Description);

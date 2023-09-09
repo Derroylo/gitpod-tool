@@ -18,8 +18,8 @@ fi
 dotnet "$GPTDIR/gitpod-tool.dll" "$@"
 
 # Check if the update folder exists
-if [ -d "update" ]; then
-    cd $GPTDIR
+if [ -d "/workspace/.gpt/update" ]; then
+    cd /workspace/.gpt
 
     # Move all files from the update folder to the current one and remove it afterwards
     mv update/* .
