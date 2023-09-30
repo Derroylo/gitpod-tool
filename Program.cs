@@ -90,9 +90,9 @@ namespace Gitpod.Tool
                     php.AddCommand<PhpRestoreCommand>("restore")
                         .WithAlias("r")
                         .WithDescription("Restores a previously set PHP version and their settings");
-                    php.AddCommand<NotYetImplementedCommand>("debug")
+                    php.AddCommand<PhpDebugCommand>("xdebug")
                         .WithAlias("d")
-                        .WithDescription("Enables/Disables xdebug [red]Not implemented yet[/]");
+                        .WithDescription("Shows or sets the current xdebug mode");
 
                     if (additionalCommands.ContainsKey("php")) {
                         foreach (CustomCommand cmd in additionalCommands["php"].Commands) {
