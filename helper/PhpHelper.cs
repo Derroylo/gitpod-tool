@@ -250,7 +250,9 @@ namespace Gitpod.Tool.Helper
             // Update the ini files that are being used by apache and cli
             PhpHelper.UpdatePhpIniFiles(isDebug);
 
-            ExecCommand.Exec("apachectl restart");
+            if (setForWeb) {
+                ExecCommand.Exec("apachectl restart");
+            }
         }
 
         private static Dictionary<string, string> GenerateCustomIniFilesFromConfig()
