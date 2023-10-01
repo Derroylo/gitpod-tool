@@ -49,33 +49,34 @@ namespace Gitpod.Tool.Helper
 
                     string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
 
-                    // Update the CLI Version
-                    ExecCommand.Exec("sudo update-alternatives --set php /usr/bin/php" + newVersion);
-                    AnsiConsole.MarkupLine("update-alternatives --set php /usr/bin/php" + newVersion + "...[green1]Success[/]");
+                    // Check if we have selected another version as the currently active one
+                    if (newVersion != currentPhpVersion) {
+                        // Update the CLI Version
+                        ExecCommand.Exec("sudo update-alternatives --set php /usr/bin/php" + newVersion);
+                        AnsiConsole.MarkupLine("update-alternatives --set php /usr/bin/php" + newVersion + "...[green1]Success[/]");
 
-                    ExecCommand.Exec("sudo update-alternatives --set php-config /usr/bin/php-config" + newVersion);
-                    AnsiConsole.MarkupLine("update-alternatives --set php-config /usr/bin/php-config" + newVersion + "...[green1]Success[/]");
+                        ExecCommand.Exec("sudo update-alternatives --set php-config /usr/bin/php-config" + newVersion);
+                        AnsiConsole.MarkupLine("update-alternatives --set php-config /usr/bin/php-config" + newVersion + "...[green1]Success[/]");
 
-                    // Update the version apache uses
-                    ExecCommand.Exec("sudo apt-get update");
-                    AnsiConsole.MarkupLine("apt-get update...[green1]Success[/]");
+                        // Update the version apache uses
+                        ExecCommand.Exec("sudo apt-get update");
+                        AnsiConsole.MarkupLine("apt-get update...[green1]Success[/]");
 
-                    ExecCommand.Exec("sudo apt-get install -y libapache2-mod-php" + newVersion);
-                    AnsiConsole.MarkupLine("apt-get install -y libapache2-mod-php" + newVersion + "...[green1]Success[/]");
+                        ExecCommand.Exec("sudo apt-get install -y libapache2-mod-php" + newVersion);
+                        AnsiConsole.MarkupLine("apt-get install -y libapache2-mod-php" + newVersion + "...[green1]Success[/]");
 
-                    ExecCommand.Exec("sudo a2dismod php" + currentPhpVersion);
-                    AnsiConsole.MarkupLine("a2dismod php" + currentPhpVersion + "...[green1]Success[/]");
+                        ExecCommand.Exec("sudo a2dismod php" + currentPhpVersion);
+                        AnsiConsole.MarkupLine("a2dismod php" + currentPhpVersion + "...[green1]Success[/]");
 
-                    ExecCommand.Exec("sudo a2enmod php" + newVersion);
-                    AnsiConsole.MarkupLine("a2enmod php" + newVersion + "...[green1]Success[/]");
-                    
-                    // Restarting Apache
-                    ExecCommand.Exec("apachectl stop");
-                    ExecCommand.Exec("apachectl start");
-                    
-                    AnsiConsole.MarkupLine("Restarting apache...[green1]Success[/]");
-
-                    //ctx.Status("Validating that the new version has been set...");
+                        ExecCommand.Exec("sudo a2enmod php" + newVersion);
+                        AnsiConsole.MarkupLine("a2enmod php" + newVersion + "...[green1]Success[/]");
+                        
+                        // Restarting Apache
+                        ExecCommand.Exec("apachectl stop");
+                        ExecCommand.Exec("apachectl start");
+                        
+                        AnsiConsole.MarkupLine("Restarting apache...[green1]Success[/]");
+                    }
 
                     string testResult = PhpHelper.GetCurrentPhpVersionOutput();
 
@@ -94,20 +95,39 @@ namespace Gitpod.Tool.Helper
                     ctx.Status("Checking if file with additional packages exists...");
 
                     if (GptConfigHelper.Config?.Php?.Packages?.Count > 0) {
-                        var updateRes = ExecCommand.Exec("sudo apt-get update");
-                        AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
+                        // Read currently installed packages
+                        var installedPackages = ExecCommand.Exec("apt list --installed");
 
-                        if (isDebug) {
-                            AnsiConsole.WriteLine(updateRes);
+                        var packagesList = installedPackages.Split("\n");
+                        var packagesCleaned = new List<string>();
+
+                        foreach (string package in packagesList) {
+                            var tmp = package.Split("/");
+
+                            packagesCleaned.Add(tmp[0].Trim());
                         }
 
-                        string packages = string.Join(" ", GptConfigHelper.Config.Php.Packages).Replace("VERSION", newVersion).Replace("php-", "php" + newVersion + "-");
+                        var packagesToCheck = GptConfigHelper.Config.Php.Packages;
 
-                        var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
-                        AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
-                        
-                        if (isDebug) {
-                            AnsiConsole.WriteLine(installRes);
+                        // Check if packages from the config file are not already installed
+                        var packagesToInstall = packagesToCheck.Where(p => !packagesCleaned.Contains(p.Replace("VERSION", newVersion).Replace("php-", "php" + newVersion + "-"))).ToArray();
+
+                        if (packagesToInstall.Length > 0) {
+                            var updateRes = ExecCommand.Exec("sudo apt-get update");
+                            AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
+
+                            if (isDebug) {
+                                AnsiConsole.WriteLine(updateRes);
+                            }
+
+                            string packages = string.Join(" ", packagesToInstall).Replace("VERSION", newVersion).Replace("php-", "php" + newVersion + "-");
+
+                            var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
+                            AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
+                            
+                            if (isDebug) {
+                                AnsiConsole.WriteLine(installRes);
+                            }
                         }
                     } else {
                         AnsiConsole.MarkupLine("Checking if file with additional packages exists...[cyan3]Not found[/]");
