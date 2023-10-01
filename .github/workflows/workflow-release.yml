@@ -4,8 +4,9 @@ on:
   push:
     tags:
     - 'v*'
-    branches:
-      - "main"
+    - '!v*-alpha*'
+    - '!v*-beta*'
+    - '!v*-rc*'
 
 jobs:
   build:

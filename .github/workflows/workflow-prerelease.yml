@@ -3,9 +3,9 @@ name: .NET Core
 on: 
   push:
     tags:
-    - 'v*'
-    branches:
-      - "develop"
+    - 'v*-alpha*'
+    - 'v*-beta*'
+    - 'v*-rc*'
 
 jobs:
   build:
