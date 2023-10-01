@@ -20,6 +20,7 @@ using Gitpod.Tool.Commands.Services;
 using Gitpod.Tool.Commands.ModeJS;
 using Gitpod.Tool.Commands.Restore;
 using Gitpod.Tool.Commands.NodeJS;
+using Semver;
 
 namespace Gitpod.Tool
 {
@@ -29,6 +30,10 @@ namespace Gitpod.Tool
         {
             var app     = new CommandApp();
             var version = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
+            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != "") {
+                version += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            }          
 
             // Load the configuration file if it exits
             GptConfigHelper.ReadConfigFile();

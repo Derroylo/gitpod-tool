@@ -81,6 +81,12 @@ namespace Gitpod.Tool.Helper
         public static bool IsUpdateAvailable()
         {
             var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
+            // Include PreRelease Version info if it exists
+            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != "") {
+                currentVersion += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+            }
+
             var latestVersion  = (GptUpdateHelper.GetLatestVersion()).Result;
 
             SemVersion localVersion = SemVersion.Parse(currentVersion, SemVersionStyles.Strict);
