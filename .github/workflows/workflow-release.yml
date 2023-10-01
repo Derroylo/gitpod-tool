@@ -4,6 +4,8 @@ on:
   push:
     tags:
     - 'v*'
+    branches:
+      - "main"
 
 jobs:
   build:
@@ -26,8 +28,7 @@ jobs:
         name: zipped-tool
         path: gitpod-tool.zip
 
-  publishRelease:
-    if: github.ref == 'refs/heads/main'
+  publish:
     runs-on: ubuntu-latest
     needs: build
     
@@ -43,25 +44,5 @@ jobs:
         skipIfReleaseExists: true
         generateReleaseNotes: true
         makeLatest: true
-        artifacts: gitpod-tool.zip
-        artifactContentType: application/zip
-
-  publishPreRelease:
-    if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
-    needs: build
-    
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/download-artifact@v3
-      with:
-        name: zipped-tool
-    - uses: ncipollo/release-action@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        skipIfReleaseExists: true
-        generateReleaseNotes: true
-        prerelease: true
         artifacts: gitpod-tool.zip
         artifactContentType: application/zip
