@@ -101,7 +101,7 @@ namespace Gitpod.Tool.Helper
                             AnsiConsole.WriteLine(updateRes);
                         }
 
-                        string packages = string.Join(" ", GptConfigHelper.Config.Php.Packages).Replace("VERSION", newVersion);
+                        string packages = string.Join(" ", GptConfigHelper.Config.Php.Packages).Replace("VERSION", newVersion).Replace("php-", "php" + newVersion + "-");
 
                         var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
                         AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");

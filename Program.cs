@@ -93,6 +93,9 @@ namespace Gitpod.Tool
                     php.AddCommand<PhpDebugCommand>("xdebug")
                         .WithAlias("d")
                         .WithDescription("Shows or sets the current xdebug mode");
+                    php.AddCommand<PhpPackageCommand>("packages")
+                        .WithAlias("p")
+                        .WithDescription("Shows installed php packages or install new ones");
 
                     if (additionalCommands.ContainsKey("php")) {
                         foreach (CustomCommand cmd in additionalCommands["php"].Commands) {
