@@ -5,7 +5,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
     <Version>0.4.2</Version>
-    <InformationalVersion>-beta.1</InformationalVersion>
+    <InformationalVersion>-beta.2</InformationalVersion>
     <Authors>Carsten Lohmann</Authors>
     <Product>Gitpod Tool or short gpt</Product>
     <Description>A little tool to make life easier with gitpod and web development</Description>
