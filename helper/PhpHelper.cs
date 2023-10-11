@@ -128,6 +128,11 @@ namespace Gitpod.Tool.Helper
                             if (isDebug) {
                                 AnsiConsole.WriteLine(installRes);
                             }
+
+                            // Restart webserver so newly installed packages are available
+                            ExecCommand.Exec("apachectl stop");
+                            ExecCommand.Exec("apachectl start");
+                            AnsiConsole.MarkupLine("Restarting apache...[green1]Success[/]");
                         }
                     } else {
                         AnsiConsole.MarkupLine("Checking if file with additional packages exists...[cyan3]Not found[/]");
