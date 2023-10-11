@@ -28,7 +28,7 @@ namespace Gitpod.Tool.Commands.Services
 
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            File.WriteAllText(applicationDir + ".services_stop", " ");
+            File.WriteAllText(applicationDir + ".services_stop", "-f " + DockerComposeHelper.GetFile() + " stop");
 
             return 0;
         }
