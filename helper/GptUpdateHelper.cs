@@ -83,7 +83,7 @@ namespace Gitpod.Tool.Helper
             var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
 
             // Include PreRelease Version info if it exists
-            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != "") {
+            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != currentVersion) {
                 currentVersion += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             }
 

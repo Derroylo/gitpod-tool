@@ -31,7 +31,7 @@ namespace Gitpod.Tool
             var app     = new CommandApp();
             var version = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
 
-            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != "") {
+            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != version) {
                 version += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             }          
 
