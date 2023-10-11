@@ -36,17 +36,25 @@ namespace Gitpod.Tool.Commands.Config
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            var configFile = Directory.GetCurrentDirectory() + "/.gpt.yml";
+            var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
+
+            if (workspacePath == null || workspacePath == string.Empty) {
+                workspacePath = Directory.GetCurrentDirectory();
+            }
+
+            var configFile = workspacePath + "/.gpt.yml";
 
             if (!File.Exists(configFile)) {
-                AnsiConsole.MarkupLine("[red]Config file not found. Make sure the file .gpt.yml exists in the current folder.[/]");
+                AnsiConsole.MarkupLine("[red]Config file not found. Make sure the file .gpt.yml exists in the root folder of your project.[/]");
 
                 return 0;
             }
 
             AnsiConsole.WriteLine("Trying to open and parse the config file...");
 
-            GptConfigHelper.ReadConfigFile(true, true);
+            if (!GptConfigHelper.ReadConfigFile(true, true)) {
+                return 0;
+            }
 
             if (GptConfigHelper.Config == null) {
                 AnsiConsole.MarkupLine("[red]The config object is empty, either the config file has no content or an error appeared during parsing of its content.[/]");
