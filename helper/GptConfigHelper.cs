@@ -16,7 +16,16 @@ namespace Gitpod.Tool.Helper
 
         public static bool ReadConfigFile(bool showError = false, bool showException = false)
         {
-            var configFile = Directory.GetCurrentDirectory() + "/.gpt.yml";
+            // Init the config object in case something fails below so we don´t end in showing an exception (will be refactored in a later version)
+            GptConfigHelper.Config = new Configuration();
+
+            var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
+
+            if (workspacePath == null || workspacePath == string.Empty) {
+                workspacePath = Directory.GetCurrentDirectory();
+            }
+
+            var configFile = workspacePath + "/.gpt.yml";
 
             if (!File.Exists(configFile)) {
                 return false;
@@ -29,6 +38,9 @@ namespace Gitpod.Tool.Helper
 
                 GptConfigHelper.Config = deserializer.Deserialize<Configuration>(File.ReadAllText(configFile));
 
+                // in case we have an empty file
+                GptConfigHelper.Config ??= new Configuration();
+
                 return true;
             } catch (Exception e) {
                 if (showException) {
@@ -36,7 +48,7 @@ namespace Gitpod.Tool.Helper
                 }
 
                 if (showError) {
-                    AnsiConsole.WriteLine("[red]Failed to parse the configuration file '.gpt.yml'. Make sure the syntax is correct.[/]");
+                    AnsiConsole.MarkupLine("[red]Failed to parse the configuration file '.gpt.yml'. Make sure the syntax is correct.[/]");
                 }
 
                 return false;
@@ -45,7 +57,13 @@ namespace Gitpod.Tool.Helper
 
         public static bool WriteConfigFile()
         {
-            var configFile = Directory.GetCurrentDirectory() + "/.gpt.yml";
+            var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
+
+            if (workspacePath == null || workspacePath == string.Empty) {
+                workspacePath = Directory.GetCurrentDirectory();
+            }
+
+            var configFile = workspacePath + "/.gpt.yml";
 
             try {
                 var serializer = new SerializerBuilder()
