@@ -33,11 +33,11 @@ fi
 
 # Check if we want to start services
 if [ -f "$GPTDIR/.services_start" ]; then
-    activeServices=$(<"$GPTDIR/.services_start")
+    startCommand=$(<"$GPTDIR/.services_start")
 
     rm "$GPTDIR/.services_start"
 
-    docker-compose up $activeServices
+    docker-compose $startCommand
 fi
 
 # Check if we want to stop services

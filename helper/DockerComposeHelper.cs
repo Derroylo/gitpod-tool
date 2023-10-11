@@ -11,7 +11,15 @@ namespace Gitpod.Tool.Helper
     {
         public static string GetFile()
         {
-            return GptConfigHelper.Config.Services.File ?? "docker-compose.yml";
+            var filename = GptConfigHelper.Config.Services.File ?? "docker-compose.yml";
+
+            var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
+
+            if (workspacePath == null || workspacePath == string.Empty) {
+                workspacePath = Directory.GetCurrentDirectory();
+            }
+
+            return workspacePath + "/" + filename;
         }
 
         public static Dictionary<string, Dictionary<string, string>> GetServices(string filename)
