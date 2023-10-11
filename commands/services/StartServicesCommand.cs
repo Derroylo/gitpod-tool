@@ -45,7 +45,7 @@ namespace Gitpod.Tool.Commands.Services
 
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            File.WriteAllText(applicationDir + ".services_start", (settings.Detached ? "-d " : "") +  String.Join(' ', activeServices));
+            File.WriteAllText(applicationDir + ".services_start", "-f " + DockerComposeHelper.GetFile() + " up " + (settings.Detached ? "-d " : "") +  String.Join(' ', activeServices));
 
             return 0;
         }

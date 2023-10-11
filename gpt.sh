@@ -33,18 +33,20 @@ fi
 
 # Check if we want to start services
 if [ -f "$GPTDIR/.services_start" ]; then
-    activeServices=$(<"$GPTDIR/.services_start")
+    startCommand=$(<"$GPTDIR/.services_start")
 
     rm "$GPTDIR/.services_start"
 
-    docker-compose up $activeServices
+    docker-compose $startCommand
 fi
 
 # Check if we want to stop services
 if [ -f "$GPTDIR/.services_stop" ]; then
+    stopCommand=$(<"$GPTDIR/.services_stop")
+
     rm "$GPTDIR/.services_stop"
 
-    docker-compose stop
+    docker-compose stopCommand
 fi
 
 # Check if we want to change the nodejs version
