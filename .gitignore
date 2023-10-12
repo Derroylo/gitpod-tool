@@ -3,3 +3,4 @@ obj
 gitpod-tool.zip
 .gpt.yml
 docker-compose.yml
+gitpod.docker-compose.yml
