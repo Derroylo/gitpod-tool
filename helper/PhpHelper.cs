@@ -35,6 +35,7 @@ namespace Gitpod.Tool.Helper
         public static void SetNewPhpVersion(string newVersion, bool isDebug)
         {
             AnsiConsole.Status()
+                .AutoRefresh(true)
                 .Start("Setting PHP Version to " + newVersion, ctx => 
                 {
                     var availablePhpVersions = PhpHelper.GetAvailablePhpVersions();

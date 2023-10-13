@@ -16,6 +16,7 @@ namespace Gitpod.Tool.Helper
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.StartInfo.RedirectStandardError = true;
+                proc.StartInfo.RedirectStandardInput = true;
                 proc.Start();
 
                 result += proc.StandardOutput.ReadToEnd();
