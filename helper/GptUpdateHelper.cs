@@ -25,7 +25,6 @@ namespace Gitpod.Tool.Helper
 
             GitHubClient client = new GitHubClient(new ProductHeaderValue("SomeName"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Derroylo", "gitpod-tool");
-
             
             Release lastRelease = null;
 
@@ -104,7 +103,7 @@ namespace Gitpod.Tool.Helper
         public static async Task<bool> UpdateToLatestRelease()
         {
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
-            var newGptDir = "/workspace/.gpt";
+            var newGptDir = "/workspace/.gpt/";
 
             JObject cacheFile = JObject.Parse(File.ReadAllText(applicationDir + "releases.json"));
 

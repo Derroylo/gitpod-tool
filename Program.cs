@@ -38,17 +38,21 @@ namespace Gitpod.Tool
             // Load the configuration file if it exits
             GptConfigHelper.ReadConfigFile();
 
-            // Check for updates
-            var latestVersion = GptUpdateHelper.GetLatestVersion().Result;
-            var isUpdateAvailable = GptUpdateHelper.IsUpdateAvailable();
-
             AnsiConsole.Write(new FigletText("GPT"));
             AnsiConsole.Markup("[deepskyblue3]Gitpod Tool[/] - Version [green]" + version + "[/]");
 
-            if (isUpdateAvailable) {
-                AnsiConsole.MarkupLine(" - [orange3]Latest Version is " + latestVersion + ". Use 'gpt update' to update.[/]");
-            } else {
-                AnsiConsole.MarkupLine("");
+            try {
+                // Check for updates
+                var latestVersion = GptUpdateHelper.GetLatestVersion().Result;
+                var isUpdateAvailable = GptUpdateHelper.IsUpdateAvailable();
+
+                if (isUpdateAvailable) {
+                    AnsiConsole.MarkupLine(" - [orange3]Latest Version is " + latestVersion + ". Use 'gpt update' to update.[/]");
+                } else {
+                    AnsiConsole.MarkupLine("");
+                }
+            } catch (Exception e) {
+                AnsiConsole.MarkupLine(" - [red]Check for update failed[/]");
             }
 
             // Load additional commands that are defined within shell scripts
