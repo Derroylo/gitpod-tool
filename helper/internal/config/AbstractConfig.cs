@@ -36,14 +36,14 @@ namespace Gitpod.Tool.Helper.Internal.Config
 
             try {
                 appConfig = ConfigReader.ReadConfigFile(configFileWithPath);
-            } catch (Exception e) {
+            } catch {
                 configFileValid = false;
 
                 if (rethrowParseException) {
                     // Init the app config with default data if the existing config file is invalid
                     appConfig = new Configuration();
 
-                    throw new Exception(e.Message);
+                    throw;
                 }
             }
 

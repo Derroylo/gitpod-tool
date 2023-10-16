@@ -36,14 +36,24 @@ namespace Gitpod.Tool
                 version += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             }
 
-            // Load the configuration file if it exits
-            GptConfigHelper.ReadConfigFile();
-
             // Output the program name, version and info if the config file could not be read
-            OutputProgramHeader(version);
+            OutputProgramHeader(version, args.Contains("--debug"));
 
             // Load additional commands that are defined within shell scripts
-            var additionalCommands = CustomCommandsLoader.Load();
+            var additionalCommands = new Dictionary<string, CustomBranch>();
+
+            try {
+                additionalCommands = CustomCommandsLoader.Load();
+            } catch (Exception e) {
+                AnsiConsole.MarkupLine("[red]Unable to load the custom commands[/] - [orange3]Append '--debug' to show more details[/]");
+
+                // With he debug arg, output the exception and exit
+                if (args.Contains("--debug")) {
+                    AnsiConsole.WriteException(e);
+
+                    return;
+                }
+            }
 
             app.Configure(config =>
             {
@@ -90,7 +100,7 @@ namespace Gitpod.Tool
             app.Run(args);
         }
 
-        private static void OutputProgramHeader(string programVersion)
+        private static void OutputProgramHeader(string programVersion, bool showException = false)
         {
             AnsiConsole.Write(new FigletText("GPT"));
             AnsiConsole.Markup("[deepskyblue3]Gitpod Tool[/] - Version [green]" + programVersion + "[/]");
@@ -107,6 +117,10 @@ namespace Gitpod.Tool
                 }
             } catch (Exception e) {
                 AnsiConsole.MarkupLine(" - [red]Check for update failed[/]");
+
+                if (showException) {
+                    AnsiConsole.WriteException(e);
+                }
             }
 
             // Try to load the config file
@@ -115,7 +129,15 @@ namespace Gitpod.Tool
             if (!AbstractConfig.ConfigFileExists) {
                 AnsiConsole.MarkupLine("[orange3]No config file found - falling back to default settings[/]");
             } else if(!AbstractConfig.IsConfigFileValid) {
-                AnsiConsole.MarkupLine("[red]Config file is invalid - falling back to default settings[/]");
+                AnsiConsole.MarkupLine("[red]Config file is invalid - falling back to default settings[/] - [orange3]Append '--debug' to show more details[/]");
+
+                if (showException) {
+                    try {
+                        AbstractConfig.ReadConfigFile(true);
+                    } catch (Exception e) {
+                        AnsiConsole.WriteException(e);
+                    }
+                }
             }
         }
 
