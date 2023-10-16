@@ -1,0 +1,5 @@
+Colors used within the program for AnsiConsole.MarkupLine:
+
+[red] = Error Message
+[green] = Success message
+[orange3] = Info message

@@ -5,7 +5,7 @@ namespace Gitpod.Tool.Classes.Configuration
 {
     class PhpConfiguration
     {
-        private string version = String.Empty;
+        private string version = "8.2";
 
         private Dictionary<string, string> config = new Dictionary<string, string>();
 
