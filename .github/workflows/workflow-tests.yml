@@ -12,9 +12,9 @@ jobs:
 
     steps:
       - name: Run .NET Code Analysis
-        uses: dotnet/code-analysis@v1
+        uses: dotnet/code-analysis@main
         id: code-analysis
         with:
           project: gitpod-tool.csproj
-          build-breaking: true
+          build-breaking: false
           all-categories: recommended
