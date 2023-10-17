@@ -8,6 +8,7 @@ on:
 
 jobs:
   tests:
+    name: .NET Code Analysis runner
     runs-on: windows-latest
 
     steps:
@@ -16,6 +17,8 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: '3.1.x'
+      - name: Install dependencies
+        run: dotnet restore
       - name: Run .NET Code Analysis
         uses: dotnet/code-analysis@main
         id: code-analysis
@@ -23,3 +26,8 @@ jobs:
           project: gitpod-tool.csproj
           build-breaking: false
           all-categories: recommended
+      - name: Upload analysis results
+        uses: actions/upload-artifact@v2
+        with:
+          name: analysis_results.sarif
+          path: ${{ steps.code-analysis.outputs.sarifFile }}
