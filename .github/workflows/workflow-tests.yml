@@ -31,3 +31,4 @@ jobs:
         with:
           name: analysis_results.sarif
           path: ${{ steps.code-analysis.outputs.sarifFile }}
+
