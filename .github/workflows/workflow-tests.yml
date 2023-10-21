@@ -21,8 +21,8 @@ jobs:
         run: dotnet restore
       - name: Run .NET Code Analysis
         run: |
-          dotnet tool install -g roslynator.dotnet.cli \
-          export PATH="$PATH:/home/gitpod/.dotnet/tools" \
+          dotnet tool install -g roslynator.dotnet.cli
+          export PATH="$PATH:/home/gitpod/.dotnet/tools"
           roslynator analyze
         
 
