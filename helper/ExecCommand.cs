@@ -1,4 +1,3 @@
-using System;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -39,6 +38,7 @@ namespace Gitpod.Tool.Helper
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.StartInfo.RedirectStandardError = true;
+                proc.StartInfo.RedirectStandardInput = true;
                 proc.OutputDataReceived += (sendingProcess, dataLine) => {
                     if (dataLine.Data != null) {
                         AnsiConsole.WriteLine(dataLine.Data);

@@ -1,18 +1,66 @@
-using System;
-using System.IO;
-using Gitpod.Tool.Classes.Configuration;
+using System.Collections.Generic;
 
 namespace Gitpod.Tool.Helper.Internal.Config
 {
     class PhpConfig: AbstractConfig
     {
-        public static string GetSelectedPhpVersion()
+        public static string PhpVersion
         {
-            if (!IsConfigFileLoaded) {
-                ReadConfigFile();
+            get {
+                if (!IsConfigFileLoaded) {
+                    ReadConfigFile();
+                }
+
+                return appConfig.Php.Version;
             }
 
-            return appConfig.Php.Version;
+            set {
+                appConfig.Php.Version = value;
+            }
+        }
+
+        public static Dictionary<string, string> Config
+        {
+            get {
+                if (!IsConfigFileLoaded) {
+                    ReadConfigFile();
+                }
+
+                return appConfig.Php.Config;
+            }
+        }
+
+        public static Dictionary<string, string> ConfigWeb
+        {
+            get {
+                if (!IsConfigFileLoaded) {
+                    ReadConfigFile();
+                }
+
+                return appConfig.Php.ConfigWeb;
+            }
+        }
+
+        public static Dictionary<string, string> ConfigCli
+        {
+            get {
+                if (!IsConfigFileLoaded) {
+                    ReadConfigFile();
+                }
+
+                return appConfig.Php.ConfigWeb;
+            }
+        }
+
+        public static List<string> Packages
+        {
+            get {
+                if (!IsConfigFileLoaded) {
+                    ReadConfigFile();
+                }
+
+                return appConfig.Php.Packages;
+            }
         }
     }
 }

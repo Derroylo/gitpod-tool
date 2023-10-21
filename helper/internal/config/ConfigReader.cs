@@ -1,7 +1,5 @@
-using System;
 using System.IO;
 using Gitpod.Tool.Classes.Configuration;
-using Spectre.Console;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 

@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using Newtonsoft.Json.Converters;
+using Gitpod.Tool.Helper.Internal.Config;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -38,7 +37,7 @@ namespace Gitpod.Tool.Helper
                 .AutoRefresh(true)
                 .Start("Setting PHP Version to " + newVersion, ctx => 
                 {
-                    var availablePhpVersions = PhpHelper.GetAvailablePhpVersions();
+                    var availablePhpVersions = GetAvailablePhpVersions();
 
                     if (!availablePhpVersions.Contains(newVersion)) {
                         AnsiConsole.MarkupLine("Checking if the input is a valid php version....[red]Invalid[/]");
@@ -48,7 +47,7 @@ namespace Gitpod.Tool.Helper
 
                     AnsiConsole.MarkupLine("Checking if the input is a valid php version....[green1]Valid[/]");
 
-                    string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
+                    string currentPhpVersion = GetCurrentPhpVersion();
 
                     // Check if we have selected another version as the currently active one
                     if (newVersion != currentPhpVersion) {
@@ -141,7 +140,7 @@ namespace Gitpod.Tool.Helper
 
                     ctx.Status("Checking if additional packages are defined in the config file...");
 
-                    if (GptConfigHelper.Config?.Php?.Packages?.Count > 0) {
+                    if (PhpConfig.Packages.Count > 0) {
                         // Read currently installed packages
                         var installedPackages = ExecCommand.Exec("apt list --installed");
 
@@ -154,7 +153,7 @@ namespace Gitpod.Tool.Helper
                             packagesCleaned.Add(tmp[0].Trim());
                         }
 
-                        var packagesToCheck = GptConfigHelper.Config.Php.Packages;
+                        var packagesToCheck = PhpConfig.Packages;
 
                         // Check if packages from the config file are not already installed
                         var packagesToInstall = packagesToCheck.Where(p => !packagesCleaned.Contains(p.Replace("VERSION", newVersion).Replace("php-", "php" + newVersion + "-"))).ToArray();
@@ -188,16 +187,7 @@ namespace Gitpod.Tool.Helper
                     ctx.Status("Saving the new active version so it can be restored...");
 
                     try {
-                        if (GptConfigHelper.Config == null) {
-                            GptConfigHelper.Config = new Classes.Configuration.Configuration();
-                        }
-
-                        if (GptConfigHelper.Config.Php == null) {
-                            GptConfigHelper.Config.Php = new Classes.Configuration.PhpConfiguration();
-                        }
-
-                        GptConfigHelper.Config.Php.Version = newVersion;
-                        GptConfigHelper.WriteConfigFile();
+                        PhpConfig.PhpVersion  = newVersion;
 
                         AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
                     } catch {
@@ -220,7 +210,7 @@ namespace Gitpod.Tool.Helper
 
         public static string GetCurrentPhpVersion()
         {
-            string output = PhpHelper.GetCurrentPhpVersionOutput();
+            string output = GetCurrentPhpVersionOutput();
 
             Regex regex = new Regex(@"(?:PHP) ([(0-9)].[(0-9)])");
             Match match = regex.Match(output);
@@ -234,7 +224,7 @@ namespace Gitpod.Tool.Helper
 
         public static void UpdatePhpIniFiles(bool isDebug)
         {
-            string currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
+            string currentPhpVersion = GetCurrentPhpVersion();
 
             if (isDebug) {
                 AnsiConsole.WriteLine("Active PHP Version " + currentPhpVersion);
@@ -242,7 +232,7 @@ namespace Gitpod.Tool.Helper
 
             AnsiConsole.Write("Generating custom.ini....");
 
-            var customIniFiles = PhpHelper.GenerateCustomIniFilesFromConfig();
+            var customIniFiles = GenerateCustomIniFilesFromConfig();
 
             if (customIniFiles.Count == 0) {
                 AnsiConsole.MarkupLine("[cyan3]No custom settings found[/]");
@@ -294,30 +284,28 @@ namespace Gitpod.Tool.Helper
             }
 
             if (!setForWeb && !setForCLI) {
-                if (GptConfigHelper.Config.Php.Config.ContainsKey(name)) {
-                    GptConfigHelper.Config.Php.Config[name] = value;
+                if (PhpConfig.Config.ContainsKey(name)) {
+                    PhpConfig.Config[name] = value;
                 } else {
-                    GptConfigHelper.Config.Php.Config.Add(name, value);
+                    PhpConfig.Config.Add(name, value);
                 }
             }
 
             if (setForWeb) {
-                if (GptConfigHelper.Config.Php.ConfigWeb.ContainsKey(name)) {
-                    GptConfigHelper.Config.Php.ConfigWeb[name] = value;
+                if (PhpConfig.ConfigWeb.ContainsKey(name)) {
+                    PhpConfig.ConfigWeb[name] = value;
                 } else {
-                    GptConfigHelper.Config.Php.ConfigWeb.Add(name, value);
+                    PhpConfig.ConfigWeb.Add(name, value);
                 }
             }
 
             if (setForCLI) {
-                if (GptConfigHelper.Config.Php.ConfigCLI.ContainsKey(name)) {
-                    GptConfigHelper.Config.Php.ConfigCLI[name] = value;
+                if (PhpConfig.ConfigCli.ContainsKey(name)) {
+                    PhpConfig.ConfigCli[name] = value;
                 } else {
-                    GptConfigHelper.Config.Php.ConfigCLI.Add(name, value);
+                    PhpConfig.ConfigCli.Add(name, value);
                 }
             }
-
-            GptConfigHelper.WriteConfigFile();
 
             // Update the ini files that are being used by apache and cli
             PhpHelper.UpdatePhpIniFiles(isDebug);
@@ -337,13 +325,13 @@ namespace Gitpod.Tool.Helper
                 Directory.CreateDirectory(iniSettingsFolder);
             }
 
-            if (GptConfigHelper.Config.Php.Config.Count == 0 && GptConfigHelper.Config.Php.ConfigCLI.Count == 0 && GptConfigHelper.Config.Php.ConfigWeb.Count == 0) {
+            if (PhpConfig.Config.Count == 0 && PhpConfig.ConfigWeb.Count == 0 && PhpConfig.ConfigCli.Count == 0) {
                 return customFilesWithPath;
             }
 
             // Combine config and configWeb to a custom.ini for web
-            var configWeb = new Dictionary<string, string>(GptConfigHelper.Config.Php.ConfigWeb);
-            var customWeb = new Dictionary<string, string>(GptConfigHelper.Config.Php.Config);
+            var configWeb = new Dictionary<string, string>(PhpConfig.ConfigWeb);
+            var customWeb = new Dictionary<string, string>(PhpConfig.Config);
 
             foreach (KeyValuePair<string, string> item in customWeb) {
                 if (configWeb.ContainsKey(item.Key)) {
@@ -368,8 +356,8 @@ namespace Gitpod.Tool.Helper
             customFilesWithPath.Add("web", iniSettingsFolder + "/custom_web.ini");
 
             // Combine config and configCLI to a custom.ini for CLI
-            var configCLI = new Dictionary<string, string>(GptConfigHelper.Config.Php.ConfigCLI);
-            var customCLI = new Dictionary<string, string>(GptConfigHelper.Config.Php.Config);
+            var configCLI = new Dictionary<string, string>(PhpConfig.ConfigCli);
+            var customCLI = new Dictionary<string, string>(PhpConfig.Config);
 
             foreach (KeyValuePair<string, string> item in customCLI) {
                 if (configCLI.ContainsKey(item.Key)) {

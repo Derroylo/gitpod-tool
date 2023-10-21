@@ -57,6 +57,17 @@ namespace Gitpod.Tool.Helper.Internal.Config
             }
         }
 
+        public static void SaveConfigFile()
+        {
+            var configFileWithPath = GetConfigFileWithPath();
+
+            try {
+                ConfigWriter.WriteConfigFile(configFileWithPath, appConfig);
+            } catch {
+                throw;
+            }
+        }
+
         public static string GetConfigFileWithPath()
         {
             var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");

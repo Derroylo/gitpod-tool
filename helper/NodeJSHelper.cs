@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using Newtonsoft.Json.Converters;
+using Gitpod.Tool.Helper.Internal.Config;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -18,7 +16,7 @@ namespace Gitpod.Tool.Helper
 
         public static string GetCurrentNodeJSVersion()
         {
-            string output = NodeJSHelper.GetCurrentNodeJSVersionOutput();
+            string output = GetCurrentNodeJSVersionOutput();
 
             Regex regex = new Regex(@"v([0-9]+).([0-9]+).([0-9]+)");
             Match match = regex.Match(output);
@@ -63,16 +61,7 @@ namespace Gitpod.Tool.Helper
                     File.WriteAllText(applicationDir + ".nodejs", newVersion);
 
                     try {
-                        if (GptConfigHelper.Config == null) {
-                            GptConfigHelper.Config = new Classes.Configuration.Configuration();
-                        }
-
-                        if (GptConfigHelper.Config.Nodejs == null) {
-                            GptConfigHelper.Config.Nodejs = new Classes.Configuration.NodeJsConfiguration();
-                        }
-
-                        GptConfigHelper.Config.Nodejs.Version = newVersion;
-                        GptConfigHelper.WriteConfigFile();
+                        NodeJsConfig.NodeJsVersion = newVersion;
 
                         AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
                     } catch {

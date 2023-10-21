@@ -1,17 +1,15 @@
-using System.Collections.Generic;
-
 namespace Gitpod.Tool.Helper.Internal.Config
 {
-    class ShellScriptConfig: AbstractConfig
+    class GptConfig: AbstractConfig
     {
-        public static List<string> AdditionalDirectories
+        public static bool AllowPreReleases
         {
             get {
                 if (!IsConfigFileLoaded) {
                     ReadConfigFile();
                 }
 
-                return appConfig.ShellScripts.AdditionalDirectories;
+                return appConfig.Config.AllowPreReleases;
             }
         }
     }

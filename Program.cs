@@ -3,7 +3,6 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Gitpod.Tool.Commands.Php;
 using Gitpod.Tool.Commands.Apache;
-using Gitpod.Tool.Commands.Mysql;
 using Gitpod.Tool.Commands;
 using Gitpod.Tool.Classes;
 using System.Collections.Generic;
@@ -11,16 +10,11 @@ using Gitpod.Tool.Helper;
 using System.Linq;
 using Gitpod.Tool.Commands.Shell;
 using System.Reflection;
-using YamlDotNet.Serialization.NamingConventions;
-using Gitpod.Tool.Classes.Configuration;
-using System.IO;
-using YamlDotNet.Serialization;
 using Gitpod.Tool.Commands.Config;
 using Gitpod.Tool.Commands.Services;
 using Gitpod.Tool.Commands.ModeJS;
 using Gitpod.Tool.Commands.Restore;
 using Gitpod.Tool.Commands.NodeJS;
-using Semver;
 using Gitpod.Tool.Helper.Internal.Config;
 
 namespace Gitpod.Tool
@@ -71,7 +65,7 @@ namespace Gitpod.Tool
                 config.AddBranch("services", branch => AddServicesCommandBranch(branch, additionalCommands));
                 config.AddCommand<SelfUpdateCommand>("update").WithDescription("Update this tool to the latest version");
 
-                var reservedBranches = new List<String>() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore" };
+                List<string> reservedBranches = new() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore" };
 
                 // Add branches that haven´t been added yet via custom commands
                 foreach (KeyValuePair<string, CustomBranch> entry in additionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {
@@ -88,8 +82,9 @@ namespace Gitpod.Tool
                 }
 
                 // Add all commands without branches
-                if (additionalCommands.ContainsKey("default")) {
-                    foreach (CustomCommand cmd in additionalCommands["default"].Commands) {
+                //CustomBranch branch = null;
+                if (additionalCommands.TryGetValue("default", out CustomBranch branch)) {
+                    foreach (CustomCommand cmd in branch.Commands) {
                         config.AddCommand<ShellFileCommand>(cmd.Command)
                             .WithData(cmd)
                             .WithDescription(cmd.Description);
@@ -98,6 +93,17 @@ namespace Gitpod.Tool
             });
 
             app.Run(args);
+
+            try {
+                // Save config file
+                AbstractConfig.SaveConfigFile();
+            } catch (Exception e) {
+                AnsiConsole.WriteLine("[red]Saving the config file failed[/] - [orange3]Append '--debug' to show more details[/]");
+
+                if (args.Contains("--debug")) {
+                    AnsiConsole.WriteException(e);
+                }
+            }
         }
 
         private static void OutputProgramHeader(string programVersion, bool showException = false)
@@ -149,8 +155,8 @@ namespace Gitpod.Tool
                 .WithAlias("v")
                 .WithDescription(@"Tries to read the config file and shows it`s content");                    
 
-            if (additionalCommands.ContainsKey("config")) {
-                foreach (CustomCommand cmd in additionalCommands["config"].Commands) {
+            if (additionalCommands.TryGetValue("config", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);
@@ -178,8 +184,8 @@ namespace Gitpod.Tool
                 .WithAlias("p")
                 .WithDescription("Shows installed php packages or install new ones");
 
-            if (additionalCommands.ContainsKey("php")) {
-                foreach (CustomCommand cmd in additionalCommands["php"].Commands) {
+            if (additionalCommands.TryGetValue("php", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);
@@ -198,8 +204,8 @@ namespace Gitpod.Tool
                 .WithAlias("r")
                 .WithDescription("Restores a previously set NodeJS version");
 
-            if (additionalCommands.ContainsKey("nodejs")) {
-                foreach (CustomCommand cmd in additionalCommands["nodejs"].Commands) {
+            if (additionalCommands.TryGetValue("nodejs", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);
@@ -220,8 +226,8 @@ namespace Gitpod.Tool
             branch.AddCommand<ApacheRestartCommand>("restart")
                 .WithDescription("Restarts apache");
 
-            if (additionalCommands.ContainsKey("apache")) {
-                foreach (CustomCommand cmd in additionalCommands["apache"].Commands) {
+            if (additionalCommands.TryGetValue("apache", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);
@@ -240,8 +246,8 @@ namespace Gitpod.Tool
             branch.AddCommand<NotYetImplementedCommand>("snapshot")
                 .WithDescription("Create/Restore a snapshot of the database. Useful to make a backup before you test something and want to restore the old state fast if anything goes wrong [red]Not implemented yet[/]");
 
-            if (additionalCommands.ContainsKey("mysql")) {
-                foreach (CustomCommand cmd in additionalCommands["mysql"].Commands) {
+            if (additionalCommands.TryGetValue("mysql", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);
@@ -262,8 +268,8 @@ namespace Gitpod.Tool
             branch.AddCommand<SelectServicesCommand>("select")
                 .WithDescription("Select which services should be active");
 
-            if (additionalCommands.ContainsKey("services")) {
-                foreach (CustomCommand cmd in additionalCommands["services"].Commands) {
+            if (additionalCommands.TryGetValue("services", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);
@@ -285,8 +291,8 @@ namespace Gitpod.Tool
                 .WithAlias("n")
                 .WithDescription("Restore settings for NodeJS");
 
-            if (additionalCommands.ContainsKey("restore")) {
-                foreach (CustomCommand cmd in additionalCommands["restore"].Commands) {
+            if (additionalCommands.TryGetValue("restore", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)
                         .WithDescription(cmd.Description);

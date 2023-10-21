@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Internal.Config;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -31,9 +30,9 @@ namespace Gitpod.Tool.Commands.Php
             var packagesList = installedPackages.Split("\n");
 
             // Filter the list so that we only show php packages
-            var phpPackages = packagesList.Where(c => c.StartsWith("php") && c.Contains("-")).ToArray();
+            var phpPackages = packagesList.Where(c => c.StartsWith("php") && c.Contains('-')).ToArray();
 
-            List<string> phpPackagesCleaned = new List<string>();
+            List<string> phpPackagesCleaned = new();
 
             foreach (string package in phpPackages) {
                 var tmp = package.Split("/");
@@ -126,7 +125,7 @@ namespace Gitpod.Tool.Commands.Php
             var updateRes = ExecCommand.Exec("sudo apt-get update");
             AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
 
-            if (this.settings.Debug) {
+            if (settings.Debug) {
                 AnsiConsole.WriteLine(updateRes);
             }
 
@@ -135,30 +134,20 @@ namespace Gitpod.Tool.Commands.Php
             var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
             AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
             
-            if (this.settings.Debug) {
+            if (settings.Debug) {
                 AnsiConsole.WriteLine(installRes);
             }
 
-            this.SavePackagesInConfig(newPackages);
+            SavePackagesInConfig(newPackages);
         }
 
         private void SavePackagesInConfig(string[] packages)
         {
-            if (GptConfigHelper.Config == null) {
-                GptConfigHelper.Config = new Classes.Configuration.Configuration();
-            }
-
-            if (GptConfigHelper.Config.Php == null) {
-                GptConfigHelper.Config.Php = new Classes.Configuration.PhpConfiguration();
-            }
-
             foreach (string package in packages) {
-                if (!GptConfigHelper.Config.Php.Packages.Contains(package)) {
-                    GptConfigHelper.Config.Php.Packages.Add(package);
+                if (!PhpConfig.Packages.Contains(package)) {
+                    PhpConfig.Packages.Add(package);
                 }
-            }
-
-            GptConfigHelper.WriteConfigFile();            
+            }          
         }
     }
 }

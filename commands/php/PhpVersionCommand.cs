@@ -2,9 +2,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Linq;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
 using Gitpod.Tool.Helper;
-using System.IO;
 
 namespace Gitpod.Tool.Commands.Php
 {

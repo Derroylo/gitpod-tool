@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
-using Spectre.Console;
+using Gitpod.Tool.Helper.Internal.Config;
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace Gitpod.Tool.Helper
@@ -11,7 +10,7 @@ namespace Gitpod.Tool.Helper
     {
         public static string GetFile()
         {
-            var filename = GptConfigHelper.Config.Services.File ?? "docker-compose.yml";
+            var filename = ServicesConfig.DockerComposeFile;
 
             var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
 

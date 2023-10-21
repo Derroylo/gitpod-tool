@@ -1,10 +1,6 @@
 using System;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Spectre.Console;
 using Octokit;
@@ -13,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.IO.Compression;
 using Semver;
+using Gitpod.Tool.Helper.Internal.Config;
 
 namespace Gitpod.Tool.Helper
 {
@@ -21,7 +18,7 @@ namespace Gitpod.Tool.Helper
         private static async Task UpdateCacheFile()
         {
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
-            bool allowPreReleases = GptConfigHelper.Config.Config.AllowPreReleases;
+            bool allowPreReleases = GptConfig.AllowPreReleases;
 
             GitHubClient client = new GitHubClient(new ProductHeaderValue("SomeName"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Derroylo", "gitpod-tool");
@@ -86,7 +83,7 @@ namespace Gitpod.Tool.Helper
                 currentVersion += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
             }
 
-            var latestVersion  = (GptUpdateHelper.GetLatestVersion()).Result;
+            var latestVersion  = GetLatestVersion().Result;
 
             SemVersion localVersion = SemVersion.Parse(currentVersion, SemVersionStyles.Strict);
             SemVersion latestRelease = SemVersion.Parse(latestVersion, SemVersionStyles.Strict);

@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading;
-using Newtonsoft.Json.Converters;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Php
@@ -15,10 +10,7 @@ namespace Gitpod.Tool.Helper.Php
     {
         public static Dictionary<string, string> GetCurrentSettings()
         {
-            var currentSettings = new Dictionary<string, string>();
-
-            currentSettings.Add("web", "");
-            currentSettings.Add("cli", "");
+            Dictionary<string, string> currentSettings = new() {{"web", ""}, {"cli", ""}};
 
             AnsiConsole.Status()
                 .Start("Reading debug config", ctx => 

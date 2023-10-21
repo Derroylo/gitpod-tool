@@ -1,9 +1,6 @@
-using System;
 using System.IO;
 using System.Collections.Generic;
 using Gitpod.Tool.Classes;
-using Spectre.Console;
-using System.ComponentModel.Design.Serialization;
 using System.Text.RegularExpressions;
 using Gitpod.Tool.Helper.Internal.Config;
 
@@ -50,8 +47,8 @@ namespace Gitpod.Tool.Helper
                 var newCustomCommand = new CustomCommand(shellScriptSettings.Command, file, shellScriptSettings.Description, shellScriptSettings.Arguments);
 
                 if (shellScriptSettings.Branch != string.Empty) {
-                    if (commands.ContainsKey(shellScriptSettings.Branch)) {
-                        commands[shellScriptSettings.Branch].Commands.Add(newCustomCommand);
+                    if (commands.TryGetValue(shellScriptSettings.Branch, out CustomBranch customBranch)) {
+                        customBranch.Commands.Add(newCustomCommand);
                     } else {
                         var newBranch = new CustomBranch(shellScriptSettings.Branch, shellScriptSettings.BranchDescription);
                         newBranch.Commands.Add(newCustomCommand);
