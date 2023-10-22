@@ -2,7 +2,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Linq;
 using System.ComponentModel;
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.NodeJs;
 
 namespace Gitpod.Tool.Commands.ModeJS
 {
@@ -27,19 +27,19 @@ namespace Gitpod.Tool.Commands.ModeJS
             this.settings = settings;
 
             if (this.settings.Version != null) {
-                NodeJSHelper.SetNewNodeJSVersion(this.settings.Version, this.settings.Debug);
+                NodeJsVersionHelper.SetNewNodeJSVersion(this.settings.Version, this.settings.Debug);
 
                 return 0;
             }
 
-            string result = NodeJSHelper.GetCurrentNodeJSVersion();
+            string result = NodeJsVersionHelper.GetCurrentNodeJSVersion();
             AnsiConsole.WriteLine(result);
 
             if (!AnsiConsole.Confirm("Do you want to change the active nodejs version?", false)) {
                 return 0;
             }
 
-            var availableNodeJSVersions = NodeJSHelper.GetAvailableNodeJSVersions();
+            var availableNodeJSVersions = NodeJsVersionHelper.GetAvailableNodeJSVersions();
 
             var newVersion = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
@@ -48,7 +48,7 @@ namespace Gitpod.Tool.Commands.ModeJS
                         .AddChoices(availableNodeJSVersions.ToArray<string>())
                 );
 
-            NodeJSHelper.SetNewNodeJSVersion(newVersion, this.settings.Debug);
+            NodeJsVersionHelper.SetNewNodeJSVersion(newVersion, this.settings.Debug);
 
             return 0;
         }        

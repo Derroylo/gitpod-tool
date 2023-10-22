@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Php;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -39,7 +39,7 @@ namespace Gitpod.Tool.Commands.Php
                 return ApplySettingsViaOption(settings.PhpSettings, settings.SetForWeb, settings.SetForCLI);
             }
 
-            AnsiConsole.WriteLine(PhpHelper.GetPhpIniPath());
+            AnsiConsole.WriteLine(PhpIniHelper.GetPhpIniPath());
 
             if (!AnsiConsole.Confirm("Do you want to change a php setting?", false)) {
                 return 0;
@@ -93,7 +93,7 @@ namespace Gitpod.Tool.Commands.Php
                     )
                 );
 
-                PhpHelper.AddSettingToPhpIni(settingName, settingValue, scope == "Web", scope == "CLI", this.settings.Debug);
+                PhpIniHelper.AddSettingToPhpIni(settingName, settingValue, scope == "Web", scope == "CLI", this.settings.Debug);
 
                 if (!AnsiConsole.Confirm("Do you want to change more php settings?", false)) {
                     canceled = true;
@@ -114,7 +114,7 @@ namespace Gitpod.Tool.Commands.Php
                     return 1;
                 }
 
-                PhpHelper.AddSettingToPhpIni(splittedSetting[0], splittedSetting[1], setForWeb, setForCLI, settings.Debug);
+                PhpIniHelper.AddSettingToPhpIni(splittedSetting[0], splittedSetting[1], setForWeb, setForCLI, settings.Debug);
             }
 
             return 0;

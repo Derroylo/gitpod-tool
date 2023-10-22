@@ -13,9 +13,7 @@ namespace Gitpod.Tool.Commands.Apache
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            string result = ExecCommand.Exec("apachectl start");
-
-            AnsiConsole.WriteLine(result);
+            AnsiConsole.WriteLine(ExecCommand.Exec("apachectl start"));
 
             return 0;
         }

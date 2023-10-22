@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Gitpod.Tool.Helper;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Php;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -10,8 +10,6 @@ namespace Gitpod.Tool.Commands.Php
 {
     class PhpPackageCommand : Command<PhpPackageCommand.Settings>
     {
-        private Settings settings;
-
         public class Settings : CommandSettings
         {
             [CommandOption("-d|--debug")]
@@ -22,8 +20,6 @@ namespace Gitpod.Tool.Commands.Php
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            this.settings = settings;
-
             // Read currently installed packages
             var installedPackages = ExecCommand.Exec("apt list --installed");
 
@@ -53,7 +49,7 @@ namespace Gitpod.Tool.Commands.Php
                 return 0;
             }
 
-            var currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
+            var currentPhpVersion = PhpVersionHelper.GetCurrentPhpVersion();
 
             var recommendedPackages = new List<string> {
                 "php-bcmath",
@@ -97,7 +93,7 @@ namespace Gitpod.Tool.Commands.Php
                 if (selections.Count > 0) {
                     AnsiConsole.WriteLine("Installing the selected packages");
 
-                    this.InstallPackages(selections.ToArray(), currentPhpVersion);
+                    PhpPackagesHelper.InstallPackages(selections.ToArray(), currentPhpVersion, settings.Debug);
                 }
             }
 
@@ -115,39 +111,9 @@ namespace Gitpod.Tool.Commands.Php
                 return 0;
             }
 
-            this.InstallPackages(newPackages.Split(" "), currentPhpVersion);
+            PhpPackagesHelper.InstallPackages(newPackages.Split(" "), currentPhpVersion, settings.Debug);
 
             return 0;
-        }
-
-        private void InstallPackages(string[] newPackages, string phpVersion)
-        {
-            var updateRes = ExecCommand.Exec("sudo apt-get update");
-            AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
-
-            if (settings.Debug) {
-                AnsiConsole.WriteLine(updateRes);
-            }
-
-            string packages = string.Join(" ", newPackages).Replace("php-", "php" + phpVersion + "-");
-
-            var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
-            AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
-            
-            if (settings.Debug) {
-                AnsiConsole.WriteLine(installRes);
-            }
-
-            SavePackagesInConfig(newPackages);
-        }
-
-        private void SavePackagesInConfig(string[] packages)
-        {
-            foreach (string package in packages) {
-                if (!PhpConfig.Packages.Contains(package)) {
-                    PhpConfig.Packages.Add(package);
-                }
-            }          
         }
     }
 }

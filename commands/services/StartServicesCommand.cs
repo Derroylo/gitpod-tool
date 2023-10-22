@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using Gitpod.Tool.Helper;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Docker;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 using Spectre.Console.Cli;
 

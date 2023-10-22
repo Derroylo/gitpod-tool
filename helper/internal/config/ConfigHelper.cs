@@ -4,7 +4,7 @@ using Gitpod.Tool.Classes.Configuration;
 
 namespace Gitpod.Tool.Helper.Internal.Config
 {
-    class AbstractConfig
+    class ConfigHelper
     {
         protected static Configuration appConfig;
 
@@ -76,7 +76,7 @@ namespace Gitpod.Tool.Helper.Internal.Config
                 workspacePath = Directory.GetCurrentDirectory();
             }
 
-            return workspacePath + "/.gpt-test.yml";
+            return workspacePath + "/.gpt.yml";
         }
     }
 }

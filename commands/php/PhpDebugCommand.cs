@@ -1,7 +1,6 @@
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
-using Gitpod.Tool.Helper;
 using Gitpod.Tool.Helper.Php;
 
 namespace Gitpod.Tool.Commands.Php
@@ -68,7 +67,7 @@ namespace Gitpod.Tool.Commands.Php
                         .AddChoices(availableXdebugSettings)
                 );
 
-                PhpHelper.AddSettingToPhpIni("xdebug.mode", xdebugSettingWeb.Split(" - ")[0], true, false);
+                PhpIniHelper.AddSettingToPhpIni("xdebug.mode", xdebugSettingWeb.Split(" - ")[0], true, false);
             }
 
             if (currentCliSetting != string.Empty && currentCliSetting.ToLower() == "Not installed/inactive".ToLower() || currentCliSetting.ToLower() == "unknown".ToLower()) {
@@ -81,7 +80,7 @@ namespace Gitpod.Tool.Commands.Php
                         .AddChoices(availableXdebugSettings)
                 );
 
-                PhpHelper.AddSettingToPhpIni("xdebug.mode", xdebugSettingCli.Split(" - ")[0], false, true);
+                PhpIniHelper.AddSettingToPhpIni("xdebug.mode", xdebugSettingCli.Split(" - ")[0], false, true);
             }
 
             return 0;

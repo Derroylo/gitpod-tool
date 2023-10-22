@@ -1,6 +1,6 @@
-namespace Gitpod.Tool.Helper.Internal.Config
+namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
-    class GptConfig: AbstractConfig
+    class GeneralConfig: ConfigHelper
     {
         public static bool AllowPreReleases
         {

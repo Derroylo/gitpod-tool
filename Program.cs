@@ -6,15 +6,14 @@ using Gitpod.Tool.Commands.Apache;
 using Gitpod.Tool.Commands;
 using Gitpod.Tool.Classes;
 using System.Collections.Generic;
-using Gitpod.Tool.Helper;
 using System.Linq;
 using Gitpod.Tool.Commands.Shell;
-using System.Reflection;
 using Gitpod.Tool.Commands.Config;
 using Gitpod.Tool.Commands.Services;
 using Gitpod.Tool.Commands.ModeJS;
 using Gitpod.Tool.Commands.Restore;
 using Gitpod.Tool.Commands.NodeJS;
+using Gitpod.Tool.Helper.Internal;
 using Gitpod.Tool.Helper.Internal.Config;
 
 namespace Gitpod.Tool
@@ -24,11 +23,7 @@ namespace Gitpod.Tool
         static void Main(string[] args)
         {
             var app     = new CommandApp();
-            var version = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
-
-            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != version) {
-                version += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            }
+            var version = UpdateHelper.CurrentVersion;
 
             // Output the program name, version and info if the config file could not be read
             OutputProgramHeader(version, args.Contains("--debug"));
@@ -96,7 +91,7 @@ namespace Gitpod.Tool
 
             try {
                 // Save config file
-                AbstractConfig.SaveConfigFile();
+                ConfigHelper.SaveConfigFile();
             } catch (Exception e) {
                 AnsiConsole.WriteLine("[red]Saving the config file failed[/] - [orange3]Append '--debug' to show more details[/]");
 
@@ -113,8 +108,8 @@ namespace Gitpod.Tool
 
             try {
                 // Check for updates
-                var latestVersion = GptUpdateHelper.GetLatestVersion().Result;
-                var isUpdateAvailable = GptUpdateHelper.IsUpdateAvailable();
+                var latestVersion = UpdateHelper.GetLatestVersion().Result;
+                var isUpdateAvailable = UpdateHelper.IsUpdateAvailable();
 
                 if (isUpdateAvailable) {
                     AnsiConsole.MarkupLine(" - [orange3]Latest Version is " + latestVersion + ". Use 'gpt update' to update.[/]");
@@ -130,16 +125,16 @@ namespace Gitpod.Tool
             }
 
             // Try to load the config file
-            AbstractConfig.ReadConfigFile();
+            ConfigHelper.ReadConfigFile();
 
-            if (!AbstractConfig.ConfigFileExists) {
+            if (!ConfigHelper.ConfigFileExists) {
                 AnsiConsole.MarkupLine("[orange3]No config file found - falling back to default settings[/]");
-            } else if(!AbstractConfig.IsConfigFileValid) {
+            } else if(!ConfigHelper.IsConfigFileValid) {
                 AnsiConsole.MarkupLine("[red]Config file is invalid - falling back to default settings[/] - [orange3]Append '--debug' to show more details[/]");
 
                 if (showException) {
                     try {
-                        AbstractConfig.ReadConfigFile(true);
+                        ConfigHelper.ReadConfigFile(true);
                     } catch (Exception e) {
                         AnsiConsole.WriteException(e);
                     }

@@ -11,7 +11,7 @@ namespace Gitpod.Tool.Commands
 {   
     class AskCommand : Command<AskCommand.Settings>
     {
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly HttpClient client = new();
 
         public class Settings : CommandSettings
         {

@@ -1,4 +1,4 @@
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Internal;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -14,9 +14,9 @@ namespace Gitpod.Tool.Commands
         public override int Execute(CommandContext context, Settings settings)
         {
             // Force an update check
-            var tmp = GptUpdateHelper.GetLatestVersion(true);
+            var tmp = UpdateHelper.GetLatestVersion(true);
 
-            if (!GptUpdateHelper.IsUpdateAvailable()) {
+            if (!UpdateHelper.IsUpdateAvailable()) {
                 AnsiConsole.MarkupLine("[red]You already have the latest version[/].");
 
                 return 0;
@@ -24,7 +24,7 @@ namespace Gitpod.Tool.Commands
 
             AnsiConsole.WriteLine("Downloading the new release...");
 
-            var res = GptUpdateHelper.UpdateToLatestRelease();
+            var res = UpdateHelper.UpdateToLatestRelease();
 
             if (!res.Result) {
                 AnsiConsole.MarkupLine("[red]Failed to update the application.[/]");

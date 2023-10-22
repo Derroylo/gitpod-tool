@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace Gitpod.Tool.Helper.Internal.Config
+namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
-    class ServicesConfig: AbstractConfig
+    class ServicesConfig: ConfigHelper
     {
         public static string DockerComposeFile
         {

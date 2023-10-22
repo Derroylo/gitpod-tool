@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace Gitpod.Tool.Helper.Internal.Config
+namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
-    class PhpConfig: AbstractConfig
+    class PhpConfig: ConfigHelper
     {
         public static string PhpVersion
         {

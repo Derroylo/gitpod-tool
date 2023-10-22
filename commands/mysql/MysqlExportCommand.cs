@@ -12,7 +12,7 @@ namespace Gitpod.Tool.Commands.Mysql
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            AnsiConsole.WriteLine("export command");
+            AnsiConsole.WriteLine("Not implemented yet");
 
             return 0;
         }

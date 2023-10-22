@@ -2,9 +2,9 @@ using System.IO;
 using System.Collections.Generic;
 using Gitpod.Tool.Classes;
 using System.Text.RegularExpressions;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 
-namespace Gitpod.Tool.Helper
+namespace Gitpod.Tool.Helper.Internal
 {
     class CustomCommandsLoader
     {

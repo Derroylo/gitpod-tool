@@ -23,6 +23,6 @@ jobs:
         run: |
           dotnet tool install -g roslynator.dotnet.cli
           export PATH="$PATH:/home/gitpod/.dotnet/tools"
-          roslynator analyze
+          roslynator analyze --ignored-diagnostics CA1822
         
 

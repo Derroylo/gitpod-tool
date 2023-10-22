@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Docker;
 using Spectre.Console;
 using Spectre.Console.Cli;
 

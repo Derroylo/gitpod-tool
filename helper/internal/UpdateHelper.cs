@@ -9,16 +9,29 @@ using Newtonsoft.Json.Linq;
 using System.Reflection;
 using System.IO.Compression;
 using Semver;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 
-namespace Gitpod.Tool.Helper
+namespace Gitpod.Tool.Helper.Internal
 {
-    class GptUpdateHelper
+    class UpdateHelper
     {  
+        public static string CurrentVersion {
+            get {
+                var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
+                // Include PreRelease Version info if it exists
+                if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != currentVersion) {
+                    currentVersion += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                }
+
+                return currentVersion;
+            }
+        }
+
         private static async Task UpdateCacheFile()
         {
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
-            bool allowPreReleases = GptConfig.AllowPreReleases;
+            bool allowPreReleases = GeneralConfig.AllowPreReleases;
 
             GitHubClient client = new GitHubClient(new ProductHeaderValue("SomeName"));
             IReadOnlyList<Release> releases = await client.Repository.Release.GetAll("Derroylo", "gitpod-tool");
@@ -76,12 +89,7 @@ namespace Gitpod.Tool.Helper
 
         public static bool IsUpdateAvailable()
         {
-            var currentVersion = Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
-
-            // Include PreRelease Version info if it exists
-            if (Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion != currentVersion) {
-                currentVersion += Assembly.GetExecutingAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
-            }
+            var currentVersion = CurrentVersion;
 
             var latestVersion  = GetLatestVersion().Result;
 

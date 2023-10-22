@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using YamlDotNet.Serialization.NamingConventions;
 
-namespace Gitpod.Tool.Helper
+namespace Gitpod.Tool.Helper.Docker
 {
     class DockerComposeHelper
     {

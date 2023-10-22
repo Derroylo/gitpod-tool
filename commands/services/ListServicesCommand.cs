@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
-using Gitpod.Tool.Helper;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Docker;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 
 namespace Gitpod.Tool.Commands.Services
 {

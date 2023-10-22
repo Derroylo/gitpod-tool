@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -35,13 +35,7 @@ namespace Gitpod.Tool.Commands.Config
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
-
-            if (workspacePath == null || workspacePath == string.Empty) {
-                workspacePath = Directory.GetCurrentDirectory();
-            }
-
-            var configFile = workspacePath + "/.gpt.yml";
+            var configFile = ConfigHelper.GetConfigFileWithPath();
 
             if (!File.Exists(configFile)) {
                 AnsiConsole.MarkupLine("[red]Config file not found. Make sure the file .gpt.yml exists in the root folder of your project.[/]");
@@ -51,11 +45,11 @@ namespace Gitpod.Tool.Commands.Config
 
             AnsiConsole.WriteLine("Trying to open and parse the config file...");
 
-            if (GptConfig.AllowPreReleases && !GptConfig.IsConfigFileValid) {
+            if (GeneralConfig.AllowPreReleases && !ConfigHelper.IsConfigFileValid) {
                 return 0;
             }
 
-            if (!GptConfig.IsConfigFileValid) {
+            if (!ConfigHelper.IsConfigFileValid) {
                 AnsiConsole.MarkupLine("[red]The config object is empty, either the config file has no content or an error appeared during parsing of its content.[/]");
 
                 return 0;

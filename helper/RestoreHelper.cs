@@ -1,4 +1,6 @@
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
+using Gitpod.Tool.Helper.NodeJs;
+using Gitpod.Tool.Helper.Php;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -32,7 +34,7 @@ namespace Gitpod.Tool.Helper
 
             AnsiConsole.MarkupLine("[green1]Found[/]");
 
-            PhpHelper.UpdatePhpIniFiles(debug);
+            PhpIniHelper.UpdatePhpIniFiles(debug);
         }
 
         public static void RestoreNodeJsVersion(bool debug = false)
@@ -47,7 +49,7 @@ namespace Gitpod.Tool.Helper
 
             AnsiConsole.MarkupLine("[green1]Found[/]");
 
-            NodeJSHelper.SetNewNodeJSVersion(NodeJsConfig.NodeJsVersion, debug);
+            NodeJsVersionHelper.SetNewNodeJSVersion(NodeJsConfig.NodeJsVersion, debug);
         }
     }
 }

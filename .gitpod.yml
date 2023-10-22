@@ -7,6 +7,11 @@ tasks:
       dotnet dev-certs https 
       dotnet restore
       dotnet build
+  - name: Analyzer
+    command: |
+      dotnet tool install -g roslynator.dotnet.cli
+      echo 'export PATH="$PATH:/home/gitpod/.dotnet/tools"' >> ~/.bash_profile
+      roslynator analyze --ignored-diagnostics CA1822
   - name: Run
     command: dotnet run
 

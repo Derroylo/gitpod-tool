@@ -1,6 +1,6 @@
-namespace Gitpod.Tool.Helper.Internal.Config
+namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
-    class NodeJsConfig: AbstractConfig
+    class NodeJsConfig: ConfigHelper
     {
         public static string NodeJsVersion
         {

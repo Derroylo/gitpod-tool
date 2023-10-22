@@ -8,7 +8,7 @@ namespace Gitpod.Tool.Helper
         {
             string result = "";
 
-            using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
+            using (System.Diagnostics.Process proc = new())
             {
                 proc.StartInfo.FileName = "/bin/bash";
                 proc.StartInfo.Arguments = "-c \" " + command + " \"";
@@ -31,7 +31,7 @@ namespace Gitpod.Tool.Helper
         {
             string result = "";
 
-            using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
+            using (System.Diagnostics.Process proc = new())
             {
                 proc.StartInfo.FileName = "/bin/bash";
                 proc.StartInfo.Arguments = "-c \" " + command + " \"";

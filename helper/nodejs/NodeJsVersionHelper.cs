@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 
-namespace Gitpod.Tool.Helper
+namespace Gitpod.Tool.Helper.NodeJs
 {
-    class NodeJSHelper
+    class NodeJsVersionHelper
     {  
         public static string GetCurrentNodeJSVersionOutput()
         {
@@ -18,7 +18,7 @@ namespace Gitpod.Tool.Helper
         {
             string output = GetCurrentNodeJSVersionOutput();
 
-            Regex regex = new Regex(@"v([0-9]+).([0-9]+).([0-9]+)");
+            Regex regex = new(@"v([0-9]+).([0-9]+).([0-9]+)");
             Match match = regex.Match(output);
 
             if (!match.Success) {
