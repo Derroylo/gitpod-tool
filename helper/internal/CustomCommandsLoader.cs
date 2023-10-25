@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Gitpod.Tool.Classes;
 using System.Text.RegularExpressions;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
-using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal
 {

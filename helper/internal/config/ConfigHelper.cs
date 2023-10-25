@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using Gitpod.Tool.Classes.Configuration;
-using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal.Config
 {
