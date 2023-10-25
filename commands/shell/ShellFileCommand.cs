@@ -60,15 +60,16 @@ namespace Gitpod.Tool.Commands.Shell
 
                 proc.StartInfo = procStartInfo;
                 proc.Start();
+                proc.WaitForExit();
 
-                var args = String.Empty;
+                var args = string.Empty;
 
                 if (settings.Arguments != null && settings.Arguments.Length > 0) {
                     for (int i = 0; i < settings.Arguments.Length; i++) {
                         settings.Arguments[i] = "\\\"" + settings.Arguments[i] + "\\\"";
                     }
 
-                    args = String.Join(' ', settings.Arguments);
+                    args = string.Join(' ', settings.Arguments);
                 }
 
                 // Execute the shell script
