@@ -1,13 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Dynamic;
 using System.IO;
-using System.Linq;
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Docker;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Gitpod.Tool.Commands.Services
 {
@@ -21,7 +16,7 @@ namespace Gitpod.Tool.Commands.Services
         public override int Execute(CommandContext context, Settings settings)
         {
             if (!File.Exists(DockerComposeHelper.GetFile())) {
-                AnsiConsole.MarkupLine(String.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
+                AnsiConsole.MarkupLine(string.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
 
                 return 0;
             }

@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-
 namespace Gitpod.Tool.Classes.Configuration
 {
     class NodeJsConfiguration
     {
-        private string version = String.Empty;
+        private string version = string.Empty;
 
-        public string Version { get { return this.version; } set { this.version = value; }}
+        public string Version { get { return version; } set { version = value; }}
     }
 }

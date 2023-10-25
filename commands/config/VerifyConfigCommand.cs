@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Internal.Config;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -36,28 +35,14 @@ namespace Gitpod.Tool.Commands.Config
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            var workspacePath = Environment.GetEnvironmentVariable("GITPOD_REPO_ROOT");
-
-            if (workspacePath == null || workspacePath == string.Empty) {
-                workspacePath = Directory.GetCurrentDirectory();
-            }
-
-            var configFile = workspacePath + "/.gpt.yml";
-
-            if (!File.Exists(configFile)) {
+            if (!ConfigHelper.ConfigFileExists) {
                 AnsiConsole.MarkupLine("[red]Config file not found. Make sure the file .gpt.yml exists in the root folder of your project.[/]");
 
                 return 0;
             }
 
-            AnsiConsole.WriteLine("Trying to open and parse the config file...");
-
-            if (!GptConfigHelper.ReadConfigFile(true, true)) {
-                return 0;
-            }
-
-            if (GptConfigHelper.Config == null) {
-                AnsiConsole.MarkupLine("[red]The config object is empty, either the config file has no content or an error appeared during parsing of its content.[/]");
+            if (!ConfigHelper.IsConfigFileValid) {
+                AnsiConsole.MarkupLine("[red]The config file is invalid. Correct the syntax errors and try again.[/]");
 
                 return 0;
             }
@@ -69,19 +54,19 @@ namespace Gitpod.Tool.Commands.Config
             }
 
             if (!showSingleOutput || settings.VerifyPhp) {
-                this.OutputPhpSettings();
+                OutputPhpSettings();
             }
             
             if (!showSingleOutput || settings.VerifyServices) {
-                this.OutputServiceSettings();
+                OutputServiceSettings();
             }
 
             if (!showSingleOutput || settings.VerifyShellScripts) {
-                this.OutputShellScriptSettings();
+                OutputShellScriptSettings();
             }
 
             if (!showSingleOutput || settings.VerifyNodeJs) {
-                this.OutputNodeJsSettings();
+                OutputNodeJsSettings();
             }
 
             return 0;
@@ -89,16 +74,16 @@ namespace Gitpod.Tool.Commands.Config
 
         private void OutputPhpSettings()
         {
-            var rule = new Rule("[red]PHP[/]");
-            rule.Justification = Justify.Left;
+            Rule rule = new() {Title = "[red]PHP[/]", Justification = Justify.Left};
+            
             AnsiConsole.Write(rule);
 
-            if (GptConfigHelper.Config.Php.Version != String.Empty) {
+            if (PhpConfig.PhpVersion != string.Empty) {
                 // Show php configuration
-                AnsiConsole.WriteLine("Version: " + GptConfigHelper.Config.Php.Version);
+                AnsiConsole.WriteLine("Version: " + PhpConfig.PhpVersion);
             }
             
-            if (GptConfigHelper.Config.Php.Config.Count > 0) {
+            if (PhpConfig.Config.Count > 0) {
                 AnsiConsole.WriteLine("Overrides (CLI and Web):");
 
                 // Create a table
@@ -108,7 +93,7 @@ namespace Gitpod.Tool.Commands.Config
                 settingsTable.AddColumn("Name");
                 settingsTable.AddColumn("Value");
 
-                foreach(KeyValuePair<string, string> item in GptConfigHelper.Config.Php.Config) {
+                foreach(KeyValuePair<string, string> item in PhpConfig.Config) {
                     settingsTable.AddRow(item.Key, item.Value);
                 }
                 
@@ -116,7 +101,7 @@ namespace Gitpod.Tool.Commands.Config
                 AnsiConsole.Write(settingsTable);
             }
 
-            if (GptConfigHelper.Config.Php.ConfigCLI.Count > 0) {
+            if (PhpConfig.ConfigCli.Count > 0) {
                 AnsiConsole.WriteLine("Overrides CLI:");
 
                 // Create a table
@@ -126,7 +111,7 @@ namespace Gitpod.Tool.Commands.Config
                 settingsTable.AddColumn("Name");
                 settingsTable.AddColumn("Value");
 
-                foreach(KeyValuePair<string, string> item in GptConfigHelper.Config.Php.ConfigCLI) {
+                foreach(KeyValuePair<string, string> item in PhpConfig.ConfigCli) {
                     settingsTable.AddRow(item.Key, item.Value);
                 }
                 
@@ -134,7 +119,7 @@ namespace Gitpod.Tool.Commands.Config
                 AnsiConsole.Write(settingsTable);
             }
 
-            if (GptConfigHelper.Config.Php.ConfigWeb.Count > 0) {
+            if (PhpConfig.ConfigWeb.Count > 0) {
                 AnsiConsole.WriteLine("Overrides Web:");
 
                 // Create a table
@@ -144,7 +129,7 @@ namespace Gitpod.Tool.Commands.Config
                 settingsTable.AddColumn("Name");
                 settingsTable.AddColumn("Value");
 
-                foreach(KeyValuePair<string, string> item in GptConfigHelper.Config.Php.ConfigWeb) {
+                foreach(KeyValuePair<string, string> item in PhpConfig.ConfigWeb) {
                     settingsTable.AddRow(item.Key, item.Value);
                 }
                 
@@ -152,7 +137,7 @@ namespace Gitpod.Tool.Commands.Config
                 AnsiConsole.Write(settingsTable);
             }
 
-            if (GptConfigHelper.Config.Php.Packages.Count > 0) {
+            if (PhpConfig.Packages.Count > 0) {
                 AnsiConsole.WriteLine("Packages:");
 
                 // Create a table
@@ -161,7 +146,7 @@ namespace Gitpod.Tool.Commands.Config
                 // Add columns
                 settingsTable.AddColumn("Name");
 
-                foreach(string item in GptConfigHelper.Config.Php.Packages) {
+                foreach(string item in PhpConfig.Packages) {
                     settingsTable.AddRow(item);
                 }
                 
@@ -172,23 +157,23 @@ namespace Gitpod.Tool.Commands.Config
 
         private void OutputNodeJsSettings()
         {
-            var rule = new Rule("[red]NodeJS[/]");
-            rule.Justification = Justify.Left;
+            Rule rule = new() {Title = "[red]NodeJS[/]", Justification = Justify.Left};
+            
             AnsiConsole.Write(rule);
 
-            if (GptConfigHelper.Config.Nodejs.Version != String.Empty) {
+            if (NodeJsConfig.NodeJsVersion != string.Empty) {
                 // Show NodeJS configuration
-                AnsiConsole.WriteLine("Version: " + GptConfigHelper.Config.Nodejs.Version);
+                AnsiConsole.WriteLine("Version: " + NodeJsConfig.NodeJsVersion);
             }
         }
 
         private void OutputServiceSettings()
         {
-            var rule = new Rule("[red]Services[/]");
-            rule.Justification = Justify.Left;
+            Rule rule = new() {Title = "[red]Services[/]", Justification = Justify.Left};
+            
             AnsiConsole.Write(rule);
 
-            if (GptConfigHelper.Config?.Services?.Active?.Count > 0) {
+            if (ServicesConfig.ActiveServices.Count > 0) {
                 AnsiConsole.WriteLine("Settings:");
 
                 // Create a table
@@ -197,7 +182,7 @@ namespace Gitpod.Tool.Commands.Config
                 // Add columns
                 settingsTable.AddColumn("Name");
 
-                foreach(string item in GptConfigHelper.Config.Services.Active) {
+                foreach(string item in ServicesConfig.ActiveServices) {
                     settingsTable.AddRow(item);
                 }
                 
@@ -208,11 +193,11 @@ namespace Gitpod.Tool.Commands.Config
 
         private void OutputShellScriptSettings()
         {
-            var rule = new Rule("[red]Shell scripts[/]");
-            rule.Justification = Justify.Left;
+            Rule rule = new() {Title = "[red]Shell scripts[/]", Justification = Justify.Left};
+
             AnsiConsole.Write(rule);
 
-            if (GptConfigHelper.Config.ShellScripts.AdditionalDirectories.Count > 0) {
+            if (ShellScriptConfig.AdditionalDirectories.Count > 0) {
                 AnsiConsole.WriteLine("Additional directories:");
 
                 // Create a table
@@ -225,12 +210,12 @@ namespace Gitpod.Tool.Commands.Config
 
                 var currentDir = Directory.GetCurrentDirectory() + "/";
 
-                foreach(string item in GptConfigHelper.Config.ShellScripts.AdditionalDirectories) {
+                foreach(string item in ShellScriptConfig.AdditionalDirectories) {
                     bool dirExists = Directory.Exists(currentDir + item);
                     int scriptsFound = 0;
 
                     if (dirExists) {
-                        scriptsFound = Directory.GetFiles(currentDir + item, "*.sh", SearchOption.AllDirectories).Count();
+                        scriptsFound = Directory.GetFiles(currentDir + item, "*.sh", SearchOption.AllDirectories).Length;
                     }
 
                     directoriesTable.AddRow(item, dirExists ? "[green1]Yes[/]" : "[red]No[/]", scriptsFound.ToString());

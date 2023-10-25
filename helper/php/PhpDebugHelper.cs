@@ -1,24 +1,16 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading;
-using Newtonsoft.Json.Converters;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Php
 {
-    class DebugHelper
+    class PhpDebugHelper
     {
         public static Dictionary<string, string> GetCurrentSettings()
         {
-            var currentSettings = new Dictionary<string, string>();
-
-            currentSettings.Add("web", "");
-            currentSettings.Add("cli", "");
+            Dictionary<string, string> currentSettings = new() {{"web", ""}, {"cli", ""}};
 
             AnsiConsole.Status()
                 .Start("Reading debug config", ctx => 
@@ -54,15 +46,19 @@ namespace Gitpod.Tool.Helper.Php
                     ctx.Status("Checking install status for WEB");
 
                     try {
-                        var webClient = new WebClient();
-                        //var response = File.ReadAllText("phpinfo.txt");
-                        var response = webClient.DownloadString("http://localhost:8080/phpinfo");
+                        var httpClient = new HttpClient();
+                        var webRequest = new HttpRequestMessage(HttpMethod.Get, "http://localhost:8080/phpinfo");
+                        var response = httpClient.Send(webRequest);
+                        
+                        using var reader = new StreamReader(response.Content.ReadAsStream());
+
+                        var responseContent = reader.ReadToEnd();
 
                         var patternWeb = """<tr><td class="e">xdebug\.mode<\/td><td class="v">(?:<i>)?([a-z ]+)(?:<\/i>)?<\/td><td class="v">(?:<i>)?([a-z ]+)(?:<\/i>)?<\/td><\/tr>""";
 
                         RegexOptions optionsWeb = RegexOptions.Multiline;
         
-                        var matchesWeb = Regex.Matches(response.ToString(), patternWeb, optionsWeb);
+                        var matchesWeb = Regex.Matches(responseContent, patternWeb, optionsWeb);
 
                         if (matchesWeb.Count > 0) {
                             currentSettings["web"] = matchesWeb[0].Groups[1].Value;
@@ -71,7 +67,7 @@ namespace Gitpod.Tool.Helper.Php
                                 currentSettings["web"] = "off";
                             }
                         }                       
-                    } catch (Exception e) {
+                    } catch {
                         currentSettings["web"] = "Unknown";
                     }
                     

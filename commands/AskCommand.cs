@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.ComponentModel;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Gitpod.Tool.Helper;
 using Newtonsoft.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -18,7 +11,7 @@ namespace Gitpod.Tool.Commands
 {   
     class AskCommand : Command<AskCommand.Settings>
     {
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly HttpClient client = new();
 
         public class Settings : CommandSettings
         {
@@ -40,8 +33,8 @@ namespace Gitpod.Tool.Commands
                 return 0;
             }
 
-            var rule = new Rule("[green]Answer[/]");
-            rule.Justification = Justify.Left;
+            Rule rule = new() {Title = "[green]Answer[/]", Justification = Justify.Left};
+            
             AnsiConsole.Write(rule);
 
             AnsiConsole.WriteLine(" ");
@@ -49,8 +42,8 @@ namespace Gitpod.Tool.Commands
             AnsiConsole.WriteLine(" ");
 
             if (answer.sources != null && answer.sources.Length > 0) {
-                rule = new Rule("[green]Sources[/]");
-                rule.Justification = Justify.Left;
+                rule = new() {Title = "[green]Sources[/]", Justification = Justify.Left};
+                
                 AnsiConsole.Write(rule);
 
                 for (int i = 0; i < answer.sources.Length; i++) {
@@ -58,8 +51,8 @@ namespace Gitpod.Tool.Commands
                 }
             }
 
-            rule = new Rule("[green]Info[/]");
-            rule.Justification = Justify.Left;
+            rule = new() {Title = "[green]Info[/]", Justification = Justify.Left};
+
             AnsiConsole.Write(rule);
 
             AnsiConsole.WriteLine("You have " + answer.RateLimitRemaining + " questions remaining of " + answer.RateLimitLimit + ". The rate limit will reset every " + answer.RateLimitReset + " seconds");

@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using Newtonsoft.Json.Converters;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 
-namespace Gitpod.Tool.Helper
+namespace Gitpod.Tool.Helper.NodeJs
 {
-    class NodeJSHelper
+    partial class NodeJsVersionHelper
     {  
         public static string GetCurrentNodeJSVersionOutput()
         {
@@ -18,10 +16,9 @@ namespace Gitpod.Tool.Helper
 
         public static string GetCurrentNodeJSVersion()
         {
-            string output = NodeJSHelper.GetCurrentNodeJSVersionOutput();
+            string output = GetCurrentNodeJSVersionOutput();
 
-            Regex regex = new Regex(@"v([0-9]+).([0-9]+).([0-9]+)");
-            Match match = regex.Match(output);
+            Match match = NodeJsVersionMatchRegex().Match(output);
 
             if (!match.Success) {
                 throw new Exception("Failed to parse the node version command output to find the active version.");
@@ -29,6 +26,9 @@ namespace Gitpod.Tool.Helper
 
             return output;
         }
+
+        [GeneratedRegex(@"v([0-9]+).([0-9]+).([0-9]+)")]
+        private static partial Regex NodeJsVersionMatchRegex();
 
         public static List<string> GetAvailableNodeJSVersions()
         {
@@ -63,16 +63,7 @@ namespace Gitpod.Tool.Helper
                     File.WriteAllText(applicationDir + ".nodejs", newVersion);
 
                     try {
-                        if (GptConfigHelper.Config == null) {
-                            GptConfigHelper.Config = new Classes.Configuration.Configuration();
-                        }
-
-                        if (GptConfigHelper.Config.Nodejs == null) {
-                            GptConfigHelper.Config.Nodejs = new Classes.Configuration.NodeJsConfiguration();
-                        }
-
-                        GptConfigHelper.Config.Nodejs.Version = newVersion;
-                        GptConfigHelper.WriteConfigFile();
+                        NodeJsConfig.NodeJsVersion = newVersion;
 
                         AnsiConsole.MarkupLine("Saving the new active version so it can be restored...[green1]Done[/]");
                     } catch {

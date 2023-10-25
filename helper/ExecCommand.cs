@@ -1,4 +1,3 @@
-using System;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -9,7 +8,7 @@ namespace Gitpod.Tool.Helper
         {
             string result = "";
 
-            using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
+            using (System.Diagnostics.Process proc = new())
             {
                 proc.StartInfo.FileName = "/bin/bash";
                 proc.StartInfo.Arguments = "-c \" " + command + " \"";
@@ -32,13 +31,14 @@ namespace Gitpod.Tool.Helper
         {
             string result = "";
 
-            using (System.Diagnostics.Process proc = new System.Diagnostics.Process())
+            using (System.Diagnostics.Process proc = new())
             {
                 proc.StartInfo.FileName = "/bin/bash";
                 proc.StartInfo.Arguments = "-c \" " + command + " \"";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.StartInfo.RedirectStandardError = true;
+                proc.StartInfo.RedirectStandardInput = true;
                 proc.OutputDataReceived += (sendingProcess, dataLine) => {
                     if (dataLine.Data != null) {
                         AnsiConsole.WriteLine(dataLine.Data);

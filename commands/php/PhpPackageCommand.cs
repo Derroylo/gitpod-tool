@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Php;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -11,8 +10,6 @@ namespace Gitpod.Tool.Commands.Php
 {
     class PhpPackageCommand : Command<PhpPackageCommand.Settings>
     {
-        private Settings settings;
-
         public class Settings : CommandSettings
         {
             [CommandOption("-d|--debug")]
@@ -23,17 +20,15 @@ namespace Gitpod.Tool.Commands.Php
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            this.settings = settings;
-
             // Read currently installed packages
             var installedPackages = ExecCommand.Exec("apt list --installed");
 
             var packagesList = installedPackages.Split("\n");
 
             // Filter the list so that we only show php packages
-            var phpPackages = packagesList.Where(c => c.StartsWith("php") && c.Contains("-")).ToArray();
+            var phpPackages = packagesList.Where(c => c.StartsWith("php") && c.Contains('-')).ToArray();
 
-            List<string> phpPackagesCleaned = new List<string>();
+            List<string> phpPackagesCleaned = new();
 
             foreach (string package in phpPackages) {
                 var tmp = package.Split("/");
@@ -54,7 +49,7 @@ namespace Gitpod.Tool.Commands.Php
                 return 0;
             }
 
-            var currentPhpVersion = PhpHelper.GetCurrentPhpVersion();
+            var currentPhpVersion = PhpVersionHelper.GetCurrentPhpVersion();
 
             var recommendedPackages = new List<string> {
                 "php-bcmath",
@@ -98,7 +93,7 @@ namespace Gitpod.Tool.Commands.Php
                 if (selections.Count > 0) {
                     AnsiConsole.WriteLine("Installing the selected packages");
 
-                    this.InstallPackages(selections.ToArray(), currentPhpVersion);
+                    PhpPackagesHelper.InstallPackages(selections.ToArray(), currentPhpVersion, settings.Debug);
                 }
             }
 
@@ -116,49 +111,9 @@ namespace Gitpod.Tool.Commands.Php
                 return 0;
             }
 
-            this.InstallPackages(newPackages.Split(" "), currentPhpVersion);
+            PhpPackagesHelper.InstallPackages(newPackages.Split(" "), currentPhpVersion, settings.Debug);
 
             return 0;
-        }
-
-        private void InstallPackages(string[] newPackages, string phpVersion)
-        {
-            var updateRes = ExecCommand.Exec("sudo apt-get update");
-            AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
-
-            if (this.settings.Debug) {
-                AnsiConsole.WriteLine(updateRes);
-            }
-
-            string packages = string.Join(" ", newPackages).Replace("php-", "php" + phpVersion + "-");
-
-            var installRes = ExecCommand.Exec("sudo apt-get install -y " + packages);
-            AnsiConsole.MarkupLine("Installing packages...[green1]Done[/]");
-            
-            if (this.settings.Debug) {
-                AnsiConsole.WriteLine(installRes);
-            }
-
-            this.SavePackagesInConfig(newPackages);
-        }
-
-        private void SavePackagesInConfig(string[] packages)
-        {
-            if (GptConfigHelper.Config == null) {
-                GptConfigHelper.Config = new Classes.Configuration.Configuration();
-            }
-
-            if (GptConfigHelper.Config.Php == null) {
-                GptConfigHelper.Config.Php = new Classes.Configuration.PhpConfiguration();
-            }
-
-            foreach (string package in packages) {
-                if (!GptConfigHelper.Config.Php.Packages.Contains(package)) {
-                    GptConfigHelper.Config.Php.Packages.Add(package);
-                }
-            }
-
-            GptConfigHelper.WriteConfigFile();            
         }
     }
 }

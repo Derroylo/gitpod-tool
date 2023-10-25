@@ -1,12 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
 using System.Threading.Tasks;
 using Gitpod.Tool.Classes;
-using Gitpod.Tool.Helper;
 using Spectre.Console;
 using Spectre.Console.Cli;
 

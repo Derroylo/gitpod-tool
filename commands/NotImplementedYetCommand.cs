@@ -1,7 +1,3 @@
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using Gitpod.Tool.Helper;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
