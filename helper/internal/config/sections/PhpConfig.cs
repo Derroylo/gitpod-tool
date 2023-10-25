@@ -7,10 +7,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static string PhpVersion
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Php.Version;
             }
 
@@ -22,10 +18,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static Dictionary<string, string> Config
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Php.Config;
             }
         }
@@ -33,10 +25,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static Dictionary<string, string> ConfigWeb
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Php.ConfigWeb;
             }
         }
@@ -44,10 +32,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static Dictionary<string, string> ConfigCli
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Php.ConfigWeb;
             }
         }
@@ -55,10 +39,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static List<string> Packages
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Php.Packages;
             }
         }

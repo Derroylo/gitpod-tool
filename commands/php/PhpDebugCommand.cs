@@ -17,7 +17,7 @@ namespace Gitpod.Tool.Commands.Php
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            var currentSettings = DebugHelper.GetCurrentSettings();
+            var currentSettings = PhpDebugHelper.GetCurrentSettings();
 
             var availableXdebugSettings = new [] { 
                 "off - xdebug is fully disabled", 
@@ -30,7 +30,7 @@ namespace Gitpod.Tool.Commands.Php
             };
 
             AnsiConsole.MarkupLine("Further explanation of the xdebug settings and how to setup your IDE correctly for it");
-            AnsiConsole.MarkupLine("can be found under https://derroylo.github.io/guide/ [red]Update this link once the docs are live[/]");
+            AnsiConsole.MarkupLine("can be found under https://derroylo.github.io/howto/xdebug/");
             AnsiConsole.WriteLine("");
 
             if (currentSettings.TryGetValue("web", out string currentWebSetting)) {

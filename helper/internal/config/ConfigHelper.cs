@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Gitpod.Tool.Classes.Configuration;
+using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal.Config
 {
@@ -16,10 +17,15 @@ namespace Gitpod.Tool.Helper.Internal.Config
 
         public static bool IsConfigFileValid { get { return configFileValid; } }
 
-        public static bool IsConfigFileLoaded { get { return appConfig != null && configFileValid; } }
+        public static bool IsConfigFileLoaded { get { return appConfig != null && configFileValid && configFileExists; } }
 
         public static void ReadConfigFile(bool rethrowParseException = false)
         {
+            // Reset everything
+            configFileExists = false;
+            configFileValid = false;
+            appConfig = null;
+
             var configFileWithPath = GetConfigFileWithPath();
 
             if (!File.Exists(configFileWithPath)) {

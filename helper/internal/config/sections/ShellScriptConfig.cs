@@ -7,10 +7,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static List<string> AdditionalDirectories
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.ShellScripts.AdditionalDirectories;
             }
         }

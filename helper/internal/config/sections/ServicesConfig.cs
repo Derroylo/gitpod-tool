@@ -7,10 +7,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static string DockerComposeFile
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Services.File;
             }
         }
@@ -18,10 +14,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static List<string> ActiveServices
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Services.Active;
             }
 

@@ -89,14 +89,16 @@ namespace Gitpod.Tool
 
             app.Run(args);
 
-            try {
-                // Save config file
-                ConfigHelper.SaveConfigFile();
-            } catch (Exception e) {
-                AnsiConsole.WriteLine("[red]Saving the config file failed[/] - [orange3]Append '--debug' to show more details[/]");
+            if (ConfigHelper.ConfigFileExists && ConfigHelper.IsConfigFileValid) {
+                try {
+                    // Save config file
+                    ConfigHelper.SaveConfigFile();
+                } catch (Exception e) {
+                    AnsiConsole.WriteLine("[red]Saving the config file failed[/] - [orange3]Append '--debug' to show more details[/]");
 
-                if (args.Contains("--debug")) {
-                    AnsiConsole.WriteException(e);
+                    if (args.Contains("--debug")) {
+                        AnsiConsole.WriteException(e);
+                    }
                 }
             }
         }
@@ -134,7 +136,7 @@ namespace Gitpod.Tool
 
                 if (showException) {
                     try {
-                        ConfigHelper.ReadConfigFile(true);
+                        //ConfigHelper.ReadConfigFile(true);
                     } catch (Exception e) {
                         AnsiConsole.WriteException(e);
                     }

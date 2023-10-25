@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace Gitpod.Tool.Helper.Php
 {
-    class PhpVersionHelper
+    partial class PhpVersionHelper
     {
         public static List<string> GetAvailablePhpVersions()
         {
@@ -31,8 +31,7 @@ namespace Gitpod.Tool.Helper.Php
         {
             string output = GetCurrentPhpVersionOutput();
 
-            Regex regex = new(@"(?:PHP) ([(0-9)].[(0-9)])");
-            Match match = regex.Match(output);
+            Match match = PhpVersionMatchRegex().Match(output);
 
             if (!match.Success) {
                 throw new Exception("Failed to parse the php version command output to find the active version.");
@@ -40,6 +39,9 @@ namespace Gitpod.Tool.Helper.Php
 
             return match.Groups[1].Value;
         }
+
+        [GeneratedRegex(@"(?:PHP) ([(0-9)].[(0-9)])")]
+        private static partial Regex PhpVersionMatchRegex();
 
         public static string GetCurrentPhpVersionOutput()
         {

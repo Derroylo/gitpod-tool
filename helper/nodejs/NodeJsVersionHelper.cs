@@ -7,7 +7,7 @@ using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.NodeJs
 {
-    class NodeJsVersionHelper
+    partial class NodeJsVersionHelper
     {  
         public static string GetCurrentNodeJSVersionOutput()
         {
@@ -18,8 +18,7 @@ namespace Gitpod.Tool.Helper.NodeJs
         {
             string output = GetCurrentNodeJSVersionOutput();
 
-            Regex regex = new(@"v([0-9]+).([0-9]+).([0-9]+)");
-            Match match = regex.Match(output);
+            Match match = NodeJsVersionMatchRegex().Match(output);
 
             if (!match.Success) {
                 throw new Exception("Failed to parse the node version command output to find the active version.");
@@ -27,6 +26,9 @@ namespace Gitpod.Tool.Helper.NodeJs
 
             return output;
         }
+
+        [GeneratedRegex(@"v([0-9]+).([0-9]+).([0-9]+)")]
+        private static partial Regex NodeJsVersionMatchRegex();
 
         public static List<string> GetAvailableNodeJSVersions()
         {

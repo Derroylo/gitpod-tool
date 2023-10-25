@@ -5,10 +5,6 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static string NodeJsVersion
         {
             get {
-                if (!IsConfigFileLoaded) {
-                    ReadConfigFile();
-                }
-
                 return appConfig.Nodejs.Version;
             }
 
