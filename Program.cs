@@ -108,6 +108,9 @@ namespace Gitpod.Tool
             AnsiConsole.Write(new FigletText("GPT"));
             AnsiConsole.Markup("[deepskyblue3]Gitpod Tool[/] - Version [green]" + programVersion + "[/]");
 
+            // Try to load the config file
+            ConfigHelper.ReadConfigFile();
+
             try {
                 // Check for updates
                 var latestVersion = UpdateHelper.GetLatestVersion().Result;
@@ -125,9 +128,6 @@ namespace Gitpod.Tool
                     AnsiConsole.WriteException(e);
                 }
             }
-
-            // Try to load the config file
-            ConfigHelper.ReadConfigFile();
 
             if (!ConfigHelper.ConfigFileExists) {
                 AnsiConsole.MarkupLine("[orange3]No config file found - falling back to default settings[/]");
