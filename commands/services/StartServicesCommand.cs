@@ -43,7 +43,32 @@ namespace Gitpod.Tool.Commands.Services
 
             var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
 
-            File.WriteAllText(applicationDir + ".services_start", "-f " + DockerComposeHelper.GetFile() + " up " + (settings.Detached ? "-d " : "") +  String.Join(' ', activeServices));
+            bool isUsingCustomDockerfile = ServicesConfig.DockerComposeFile != "docker-compose.yml";
+            AnsiConsole.WriteLine(ServicesConfig.DockerComposeFile);
+            AnsiConsole.WriteLine(isUsingCustomDockerfile.ToString());
+            AnsiConsole.WriteLine(applicationDir);
+
+            if (applicationDir == "/workspace/.gpt/" && isUsingCustomDockerfile && File.Exists("/home/gitpod/.gpt/gpt.sh")) {
+                var gptScriptContent = File.ReadAllText("/home/gitpod/.gpt/gpt.sh");
+
+                if (gptScriptContent.Contains("docker-compose up $activeServices")) {
+                    AnsiConsole.MarkupLine("[red]Disabled usage of custom named docker-compose files[/]");
+                    AnsiConsole.MarkupLine("[orange3]It seems that in the workspace an older version of gpt is installed which contains an error that prevents the usage of custom named docker-compose files.[/]");
+                    AnsiConsole.MarkupLine("[orange3]As temporary fix the file 'gpt.sh' has been copied to '/home/gitpod.gpt/' so that you can execute this command again to get it working.[/]");
+                    AnsiConsole.MarkupLine("[orange3]Since that folder is not being persisted, you will face this error again after workspace restart. Update the workspace image so it uses the latest version of GPT.[/]");
+                    AnsiConsole.MarkupLine("[orange3]https://www.gitpod.io/docs/configure/workspaces/workspace-image#manually-rebuild-a-workspace-image[/]");
+
+                    try {
+                        File.Copy("/workspace/.gpt/gpt.sh", "/home/gitpod/.gpt/gpt.sh");
+                    } catch {
+                        AnsiConsole.MarkupLine("[red]Copying the file has failed.[/] Try it manually with 'cp /workspace/.gpt/gpt.sh /home/gitpod/.gpt/gpt.sh");
+                    }
+                    
+                    return 0;
+                }
+            }
+
+            File.WriteAllText(applicationDir + ".services_start", "-f " + DockerComposeHelper.GetFile() + " up " + (settings.Detached ? "-d " : "") +  string.Join(' ', activeServices));
 
             return 0;
         }
