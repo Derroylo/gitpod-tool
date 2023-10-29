@@ -15,6 +15,9 @@ using Gitpod.Tool.Commands.Restore;
 using Gitpod.Tool.Commands.NodeJS;
 using Gitpod.Tool.Helper.Internal;
 using Gitpod.Tool.Helper.Internal.Config;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Gitpod.Tool
 {
@@ -35,6 +38,30 @@ namespace Gitpod.Tool
                 additionalCommands = CustomCommandsLoader.Load();
             } catch (Exception e) {
                 AnsiConsole.MarkupLine("[red]Unable to load the custom commands[/] - [orange3]Append '--debug' to show more details[/]");
+
+                // With he debug arg, output the exception and exit
+                if (args.Contains("--debug")) {
+                    AnsiConsole.WriteException(e);
+
+                    return;
+                }
+            }
+
+            // Always copy the file gpt.sh to /home/workspace/.gpt/ to prevent problems with older versions or while using PreReleases that add new functions to it
+            try {
+                var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
+
+                if (applicationDir == "/workspace/.gpt/" && File.Exists("/home/gitpod/.gpt/gpt.sh") && GetMD5HashForFile("/workspace/.gpt/gpt.sh") != GetMD5HashForFile("/home/gitpod/.gpt/gpt.sh")) {
+                    File.Copy("/workspace/.gpt/gpt.sh", "/home/gitpod/.gpt/gpt.sh", true);
+
+#pragma warning disable CA1416
+                    File.SetUnixFileMode("/home/gitpod/.gpt/gpt.sh", UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.OtherRead);
+#pragma warning restore CA1416
+
+                    AnsiConsole.MarkupLine("[orange3]gpt.sh has been updated to the latest version. If you have encountered an error, try running the command again.[/]");
+                }
+            } catch (Exception e) {
+                AnsiConsole.MarkupLine("[red]Unable to copy the file /workspace/.gpt/gpt.sh to /home/gitpod/.gpt/gpt.sh[/] - [orange3]Append '--debug' to show more details[/]");
 
                 // With he debug arg, output the exception and exit
                 if (args.Contains("--debug")) {
@@ -101,6 +128,14 @@ namespace Gitpod.Tool
                     }
                 }
             }
+        }
+
+        private static string GetMD5HashForFile(string filename)
+        {
+            using var md5 = MD5.Create();
+            using var stream = File.OpenRead(filename);
+
+            return Encoding.Default.GetString(md5.ComputeHash(stream));
         }
 
         private static void OutputProgramHeader(string programVersion, bool showException = false)
