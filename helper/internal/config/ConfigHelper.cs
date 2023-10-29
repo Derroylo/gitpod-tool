@@ -12,6 +12,10 @@ namespace Gitpod.Tool.Helper.Internal.Config
 
         public static bool ConfigFileExists { get { return configFileExists; } }
 
+        private static bool configUpdated = false;
+
+        public static bool ConfigUpdated { get { return configUpdated; } set { configUpdated = value; }}
+
         private static bool configFileValid = false;
 
         public static bool IsConfigFileValid { get { return configFileValid; } }

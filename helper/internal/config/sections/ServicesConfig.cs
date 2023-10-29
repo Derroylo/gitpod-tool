@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
@@ -18,6 +19,8 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
             }
 
             set {
+                ConfigUpdated = true;
+
                 appConfig.Services.Active = value;
             }
         }

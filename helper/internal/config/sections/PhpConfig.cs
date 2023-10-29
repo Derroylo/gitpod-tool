@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
@@ -11,6 +12,10 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
             }
 
             set {
+                if (appConfig.Php.Version != value) {
+                    ConfigUpdated = true;
+                }
+
                 appConfig.Php.Version = value;
             }
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Gitpod.Tool.Helper.Internal.Config;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 
@@ -98,6 +99,9 @@ namespace Gitpod.Tool.Helper.Php
                     PhpConfig.ConfigCli.Add(name, value);
                 }
             }
+
+            // Manually set that the config has been updated
+            ConfigHelper.ConfigUpdated = true;
 
             // Update the ini files that are being used by apache and cli
             UpdatePhpIniFiles(isDebug);
