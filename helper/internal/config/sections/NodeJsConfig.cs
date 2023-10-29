@@ -1,5 +1,3 @@
-using Spectre.Console;
-
 namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
     class NodeJsConfig: ConfigHelper

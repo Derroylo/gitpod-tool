@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
