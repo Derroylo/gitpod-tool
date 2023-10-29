@@ -116,7 +116,7 @@ namespace Gitpod.Tool
 
             app.Run(args);
 
-            if (ConfigHelper.ConfigFileExists && ConfigHelper.IsConfigFileValid) {
+            if (ConfigHelper.ConfigFileExists && ConfigHelper.IsConfigFileValid && ConfigHelper.ConfigUpdated) {
                 try {
                     // Save config file
                     ConfigHelper.SaveConfigFile();

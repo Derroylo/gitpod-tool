@@ -11,6 +11,10 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
             }
 
             set {
+                if (appConfig.Php.Version != value) {
+                    ConfigUpdated = true;
+                }
+
                 appConfig.Php.Version = value;
             }
         }

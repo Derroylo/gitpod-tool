@@ -18,6 +18,8 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
             }
 
             set {
+                ConfigUpdated = true;
+
                 appConfig.Services.Active = value;
             }
         }
