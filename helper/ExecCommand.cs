@@ -1,10 +1,11 @@
+using System;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
 {
     class ExecCommand
     {
-        public static string Exec(string command)
+        public static string Exec(string command, int timeoutInSeconds = 300)
         {
             string result = "";
 
@@ -21,7 +22,13 @@ namespace Gitpod.Tool.Helper
                 result += proc.StandardOutput.ReadToEnd();
                 result += proc.StandardError.ReadToEnd();
 
-                proc.WaitForExit();
+                bool exited = proc.WaitForExit(timeoutInSeconds * 1000);
+
+                if (!exited) {
+                    proc.Kill();
+
+                    throw new Exception("Command '" + command + "' took longer then the timeout of " + timeoutInSeconds + "s. Check the output for clues on what went wrong: " + result);
+                }
             }
 
             return result;
