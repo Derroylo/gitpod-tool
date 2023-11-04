@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
