@@ -63,6 +63,10 @@ namespace Gitpod.Tool.Helper.Php
                 }
                 
                 ExecCommand.Exec("sudo cp " + customIniFileWeb + " " + targetFile);
+
+                // Restart apache when changes has been made to the web php.ini files (doing this here as this one is used be restore php command)
+                ExecCommand.Exec("apachectl stop");
+                ExecCommand.Exec("apachectl start");
             }
 
             AnsiConsole.MarkupLine("[green1]Done[/]");
@@ -105,10 +109,6 @@ namespace Gitpod.Tool.Helper.Php
 
             // Update the ini files that are being used by apache and cli
             UpdatePhpIniFiles(isDebug);
-
-            if (setForWeb) {
-                ExecCommand.Exec("apachectl restart");
-            }
         }
 
         private static Dictionary<string, string> GenerateCustomIniFilesFromConfig()
