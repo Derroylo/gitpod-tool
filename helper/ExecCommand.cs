@@ -1,10 +1,11 @@
+using System;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
 {
     class ExecCommand
     {
-        public static string Exec(string command)
+        public static string Exec(string command, int timeoutInSeconds = 300)
         {
             string result = "";
 
@@ -13,18 +14,28 @@ namespace Gitpod.Tool.Helper
                 proc.StartInfo.FileName = "/bin/bash";
                 proc.StartInfo.Arguments = "-c \" " + command + " \"";
                 proc.StartInfo.UseShellExecute = false;
+                proc.EnableRaisingEvents = true;
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.StartInfo.RedirectStandardError = true;
                 proc.StartInfo.RedirectStandardInput = true;
                 proc.Start();
 
-                result += proc.StandardOutput.ReadToEnd();
-                result += proc.StandardError.ReadToEnd();
+                proc.ErrorDataReceived += (sender, errorLine) => { if (errorLine != null) result += errorLine.Data + "\n"; };
+                proc.OutputDataReceived += (sender, outputLine) => { if (outputLine != null) result += outputLine.Data + "\n"; };
 
-                proc.WaitForExit();
+                proc.BeginErrorReadLine();
+                proc.BeginOutputReadLine();
+
+                bool exited = proc.WaitForExit(timeoutInSeconds * 1000);
+
+                if (!exited) {
+                    proc.Kill();
+
+                    throw new Exception("Command '" + command + "' took longer then the timeout of " + timeoutInSeconds + "s. Check the output for clues on what went wrong: " + result);
+                }
             }
 
-            return result;
+            return result.TrimEnd('\n');
         }
 
         public static string ExecWithDirectOutput(string command)
