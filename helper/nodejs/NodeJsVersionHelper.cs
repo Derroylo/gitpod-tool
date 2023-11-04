@@ -56,7 +56,7 @@ namespace Gitpod.Tool.Helper.NodeJs
             AnsiConsole.Status()
                 .Start("Changing to NodeJS " + newVersion + ", this can take a few mins.", ctx => 
                 {
-                    ExecCommand.Exec("source \"$NVM_DIR\"/nvm-lazy.sh && nvm install " + newVersion);
+                    ExecCommand.Exec("source \"$NVM_DIR\"/nvm-lazy.sh && nvm install " + newVersion, 300);
 
                     // Write the selected version to a file, so we can change the active nodejs version via the gpt.sh script
                     var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
