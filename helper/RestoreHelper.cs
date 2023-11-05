@@ -51,5 +51,14 @@ namespace Gitpod.Tool.Helper
 
             NodeJsVersionHelper.SetNewNodeJSVersion(NodeJsConfig.NodeJsVersion, debug);
         }
+
+        public static void RestoreEnvVariables(bool debug = false)
+        {
+            // Check if there has been something set via config file
+            AnsiConsole.Write("Checking if Env variables has been set via config....");
+
+            // Not implemented yet, will come with the next major release
+            AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+        }
     }
 }

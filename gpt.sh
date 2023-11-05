@@ -14,6 +14,11 @@ if [[ $SCRIPTPATH == "/home/gitpod/.gpt" ]]  && [ -d "/workspace/.gpt" ] && [ -f
 	GPTDIR="/workspace/.gpt"
 fi
 
+# Fix wrong value of GITPOD_REPO_ROOT when openning a Gitpod snapshot
+if [ "$GITPOD_REPO_ROOT" == '/workspace' ]; then
+    export GITPOD_REPO_ROOT="$THEIA_WORKSPACE_ROOT"
+fi
+
 # run the application and pass all arguments to it
 dotnet "$GPTDIR/gitpod-tool.dll" "$@"
 
