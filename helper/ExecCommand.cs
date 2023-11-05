@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper
@@ -33,6 +34,9 @@ namespace Gitpod.Tool.Helper
 
                     throw new Exception("Command '" + command + "' took longer then the timeout of " + timeoutInSeconds + "s. Check the output for clues on what went wrong: " + result);
                 }
+
+                // Add a little sleep so that we can make sure even on success to catch all output
+                Thread.Sleep(200);
             }
 
             return result.TrimEnd('\n');

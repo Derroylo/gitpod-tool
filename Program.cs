@@ -322,6 +322,9 @@ namespace Gitpod.Tool
             branch.AddCommand<RestoreNodeJsCommand>("nodejs")
                 .WithAlias("n")
                 .WithDescription("Restore settings for NodeJS");
+            branch.AddCommand<RestoreEnvCommand>("env")
+                .WithAlias("e")
+                .WithDescription("Restore environment variables");
 
             if (additionalCommands.TryGetValue("restore", out CustomBranch customBranch)) {
                 foreach (CustomCommand cmd in customBranch.Commands) {

@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Gitpod.Tool.Commands.Restore
 {
-    class RestoreAllCommand : Command<RestoreAllCommand.Settings>
+    class RestoreEnvCommand : Command<RestoreEnvCommand.Settings>
     {
         public class Settings : CommandSettings
         {
@@ -17,12 +17,7 @@ namespace Gitpod.Tool.Commands.Restore
         public override int Execute(CommandContext context, Settings settings)
         {
             RestoreHelper.RestoreEnvVariables(settings.Debug);
-
-            RestoreHelper.RestorePhpVersion(settings.Debug);
-            RestoreHelper.RestorePhpIni(settings.Debug);
             
-            RestoreHelper.RestoreNodeJsVersion(settings.Debug);
-
             return 0;
         }
     }
