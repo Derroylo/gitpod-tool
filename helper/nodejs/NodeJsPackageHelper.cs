@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.NodeJs
