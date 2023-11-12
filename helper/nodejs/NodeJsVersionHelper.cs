@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
@@ -56,11 +57,43 @@ namespace Gitpod.Tool.Helper.NodeJs
             AnsiConsole.Status()
                 .Start("Changing to NodeJS " + newVersion + ", this can take a few mins.", ctx => 
                 {
+                    var currentVersion = GetCurrentNodeJSVersion();
+
+                    if (currentVersion == newVersion)                 {
+                        AnsiConsole.WriteLine("NodeJS " + newVersion + " is already the current active one.");
+
+                        return;
+                    }
+
+                    ctx.Status("Loading installed packages...");
+
+                    // Get the installed packages for the current nodejs version
+                    var installedPackages = NodeJsPackageHelper.GetCurrentInstalledNodeJSPackages();
+
+                    ctx.Status("Switching to new nodejs version...");
+
                     ExecCommand.Exec("source \"$NVM_DIR\"/nvm-lazy.sh && nvm install " + newVersion, 300);
 
                     // Write the selected version to a file, so we can change the active nodejs version via the gpt.sh script
                     var applicationDir = AppDomain.CurrentDomain.BaseDirectory;
                     File.WriteAllText(applicationDir + ".nodejs", newVersion);
+
+                    ctx.Status("Loading installed packages in the new nodejs version...");
+
+                    // Fetch the packages installed in the new version
+                    // We have to set the version again, otherwise it will just show the old nodejs output
+                    var listPackagesOutput = ExecCommand.Exec(". ~/.nvm/nvm.sh && nvm use " + newVersion + " && nvm alias default " + newVersion + " && npm list -g --depth=0", 300);
+                    var installedPackagesNew = NodeJsPackageHelper.GetCurrentInstalledNodeJSPackages(listPackagesOutput);
+
+                    var missingPackages = installedPackages.Where(p => !installedPackagesNew.Contains(p)).ToList();
+
+                    if (missingPackages.Count > 0) {
+                        ctx.Status("Installing packages that are missing in the new version...");
+
+                        ExecCommand.Exec(". ~/.nvm/nvm.sh && nvm use " + newVersion + " && nvm alias default " + newVersion + " && npm install -g " + string.Join(" ", missingPackages), 300);
+                    }
+
+                    ctx.Status("Saving the new active version so it can be restored...");
 
                     try {
                         NodeJsConfig.NodeJsVersion = newVersion;
@@ -71,7 +104,7 @@ namespace Gitpod.Tool.Helper.NodeJs
                     }
 
                     AnsiConsole.WriteLine("NodeJS has been set to " + newVersion);
-                    AnsiConsole.WriteLine("You may need to reload the terminal or open a new one to change to the new active version!");
+                    AnsiConsole.WriteLine("You may need to reload the terminal(execute 'source ~/.bashrc') or open a new terminal to change to the new active version!");
                 });
         }
     }
