@@ -5,43 +5,43 @@ namespace Gitpod.Tool.Classes
 {
     class ShellScriptSettings
     {
-        private string branch = String.Empty;
+        private readonly string branch = string.Empty;
 
-        private string branchDescription = String.Empty;
+        private readonly string branchDescription = string.Empty;
 
-        private string command = String.Empty;
+        private readonly string command = string.Empty;
 
-        private string description = String.Empty;
+        private readonly string description = string.Empty;
 
-        private List<string> arguments = new List<string>();
+        private readonly List<string> arguments = new();
 
         public string Branch
         {
-            get { return this.branch; }
+            get { return branch; }
         }
 
         public string BranchDescription
         {
-            get { return this.branchDescription; }
+            get { return branchDescription; }
         }
 
         public string Command
         {
-            get { return this.command; }
+            get { return command; }
         }
 
         public string Description
         {
-            get { return this.description; }
+            get { return description; }
         }
 
         public List<string> Arguments
         {
-            get { return this.arguments; }
+            get { return arguments; }
         }
 
         public ShellScriptSettings(string command, string description = null, string branch = null, string branchDescription = null, List<string> arguments = null) {
-            if (command == null || command == String.Empty || command.Length < 1) {
+            if (command == null || command == string.Empty || command.Length < 1) {
                 throw new Exception("Missing command");
             }
 

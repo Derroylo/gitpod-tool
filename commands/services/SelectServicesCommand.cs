@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
-using Gitpod.Tool.Helper;
+using Gitpod.Tool.Helper.Docker;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Gitpod.Tool.Commands.Services
 {
@@ -22,15 +18,13 @@ namespace Gitpod.Tool.Commands.Services
         public override int Execute(CommandContext context, Settings settings)
         {
             if (!File.Exists(DockerComposeHelper.GetFile())) {
-                AnsiConsole.MarkupLine(String.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
+                AnsiConsole.MarkupLine(string.Format("[red]{0} not found[/]", DockerComposeHelper.GetFile()));
 
                 return 0;
             }
 
             var services = DockerComposeHelper.GetServices(DockerComposeHelper.GetFile());
-            var serviceCategories = new Dictionary<string, List<string>>();
-
-            serviceCategories.Add("unknown", new List<string>());
+            Dictionary<string, List<string>> serviceCategories = new() {{"unknown", new List<string>()}};
 
             foreach (KeyValuePair<string, Dictionary<string, string>> item in services) {               
                 if (!item.Value.ContainsKey("category")) {
@@ -49,7 +43,7 @@ namespace Gitpod.Tool.Commands.Services
                     .Title("Which service(s) should be started with your workspace?")
                     .InstructionsText("[grey](Press [blue]space[/] to toggle a service, [green]enter[/] to accept)[/]");
 
-            if (serviceCategories.Count() > 1) {
+            if (serviceCategories.Count > 1) {
                 foreach (KeyValuePair<string, List<string>> item in serviceCategories) {
                     if (item.Key == "unknown") {
                         continue;
@@ -67,16 +61,15 @@ namespace Gitpod.Tool.Commands.Services
                 multiSelectPrompt.AddChoices(serviceCategories["unknown"].ToArray());
             }
 
-            if (GptConfigHelper.Config.Services != null && GptConfigHelper.Config.Services.Active.Count > 0) {
-                foreach (string item in GptConfigHelper.Config.Services.Active) {
+            if (ServicesConfig.ActiveServices.Count > 0) {
+                foreach (string item in ServicesConfig.ActiveServices) {
                     multiSelectPrompt.Select(item);
                 }
             }
 
             var selectedServices = AnsiConsole.Prompt(multiSelectPrompt);
 
-            GptConfigHelper.Config.Services.Active = selectedServices;
-            GptConfigHelper.WriteConfigFile();
+            ServicesConfig.ActiveServices = selectedServices;
 
             AnsiConsole.WriteLine("The following services have been marked as active and will start with the workspace");
 

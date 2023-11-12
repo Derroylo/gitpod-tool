@@ -3,7 +3,9 @@ name: .NET Core
 on: 
   push:
     tags:
-    - 'v*'
+    - 'v*-alpha*'
+    - 'v*-beta*'
+    - 'v*-rc*'
 
 jobs:
   build:
@@ -39,7 +41,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
+        skipIfReleaseExists: true
         generateReleaseNotes: true
-        makeLatest: true
+        prerelease: true
         artifacts: gitpod-tool.zip
         artifactContentType: application/zip

@@ -14,6 +14,11 @@ if [[ $SCRIPTPATH == "/home/gitpod/.gpt" ]]  && [ -d "/workspace/.gpt" ] && [ -f
 	GPTDIR="/workspace/.gpt"
 fi
 
+# Fix wrong value of GITPOD_REPO_ROOT when openning a Gitpod snapshot
+if [ "$GITPOD_REPO_ROOT" == '/workspace' ]; then
+    export GITPOD_REPO_ROOT="$THEIA_WORKSPACE_ROOT"
+fi
+
 # run the application and pass all arguments to it
 dotnet "$GPTDIR/gitpod-tool.dll" "$@"
 
@@ -33,18 +38,20 @@ fi
 
 # Check if we want to start services
 if [ -f "$GPTDIR/.services_start" ]; then
-    activeServices=$(<"$GPTDIR/.services_start")
+    startCommand=$(<"$GPTDIR/.services_start")
 
     rm "$GPTDIR/.services_start"
 
-    docker-compose up $activeServices
+    docker-compose $startCommand
 fi
 
 # Check if we want to stop services
 if [ -f "$GPTDIR/.services_stop" ]; then
+    stopCommand=$(<"$GPTDIR/.services_stop")
+
     rm "$GPTDIR/.services_stop"
 
-    docker-compose stop
+    docker-compose stopCommand
 fi
 
 # Check if we want to change the nodejs version

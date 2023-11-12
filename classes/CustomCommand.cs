@@ -5,40 +5,40 @@ namespace Gitpod.Tool.Classes
 {
     class CustomCommand
     {
-        private string command = String.Empty;
+        private readonly string command = string.Empty;
 
-        private string file = String.Empty;
+        private readonly string file = string.Empty;
 
-        private string description = String.Empty;
+        private readonly string description = string.Empty;
 
-        private List<string> arguments = new List<string>();
+        private readonly List<string> arguments = new();
 
         public string Command
         {
-            get { return this.command; }
+            get { return command; }
         }
 
         public string File
         {
-            get { return this.file; }
+            get { return file; }
         }
 
         public string Description
         {
-            get { return this.description; }
+            get { return description; }
         }
 
         public List<string> Arguments
         {
-            get { return this.arguments; }
+            get { return arguments; }
         }
 
         public CustomCommand(string command, string file, string description = null, List<string> arguments = null) {
-            if (command == null || command == String.Empty || command.Length < 1) {
+            if (command == null || command == string.Empty || command.Length < 1) {
                 throw new Exception("Missing command for custom command");
             }
 
-            if (file == null || file == String.Empty || file.Length < 4) {
+            if (file == null || file == string.Empty || file.Length < 4) {
                 throw new Exception("Missing file for custom command");
             }
 

@@ -5,29 +5,29 @@ namespace Gitpod.Tool.Classes
 {
     class CustomBranch
     {
-        private string name = String.Empty;
+        private readonly string name = string.Empty;
 
-        private string description = String.Empty;
+        private readonly string description = string.Empty;
 
-        private List<CustomCommand> commands = new List<CustomCommand>();
+        private readonly List<CustomCommand> commands = new();
 
         public string Name
         {
-            get { return this.name; }
+            get { return name; }
         }
 
         public string Description
         {
-            get { return this.description; }
+            get { return description; }
         }
 
         public List<CustomCommand> Commands
         {
-            get { return this.commands; }
+            get { return commands; }
         }
 
         public CustomBranch(string name, string description = null) {
-            if (name == null || name == String.Empty || name.Length < 1) {
+            if (name == null || name == string.Empty || name.Length < 1) {
                 throw new Exception("Missing name for custom branch");
             }
 

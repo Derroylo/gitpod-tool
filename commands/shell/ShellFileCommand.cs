@@ -1,12 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Security.AccessControl;
 using System.Threading.Tasks;
 using Gitpod.Tool.Classes;
-using Gitpod.Tool.Helper;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -64,15 +60,16 @@ namespace Gitpod.Tool.Commands.Shell
 
                 proc.StartInfo = procStartInfo;
                 proc.Start();
+                proc.WaitForExit();
 
-                var args = String.Empty;
+                var args = string.Empty;
 
                 if (settings.Arguments != null && settings.Arguments.Length > 0) {
                     for (int i = 0; i < settings.Arguments.Length; i++) {
                         settings.Arguments[i] = "\\\"" + settings.Arguments[i] + "\\\"";
                     }
 
-                    args = String.Join(' ', settings.Arguments);
+                    args = string.Join(' ', settings.Arguments);
                 }
 
                 // Execute the shell script

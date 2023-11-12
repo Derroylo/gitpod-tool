@@ -1,43 +1,35 @@
-using System;
 using System.IO;
 using System.Collections.Generic;
 using Gitpod.Tool.Classes;
-using Spectre.Console;
-using System.ComponentModel.Design.Serialization;
 using System.Text.RegularExpressions;
+using Gitpod.Tool.Helper.Internal.Config.Sections;
 
-namespace Gitpod.Tool.Helper
+namespace Gitpod.Tool.Helper.Internal
 {
     class CustomCommandsLoader
     {
         public static Dictionary<string, CustomBranch> Load()
         {           
-            try {
-                var scripts = CustomCommandsLoader.SearchForShellScripts(".devEnv/gitpod/scripts");
+            var scripts = SearchForShellScripts(".devEnv/gitpod/scripts");
 
-                if (GptConfigHelper.Config.ShellScripts.AdditionalDirectories.Count > 0) {
-                    foreach (string folder in GptConfigHelper.Config.ShellScripts.AdditionalDirectories) {
-                        scripts = CustomCommandsLoader.SearchForShellScripts(folder, scripts);
-                    }
+            if (ShellScriptConfig.AdditionalDirectories.Count > 0) {
+                foreach (string folder in ShellScriptConfig.AdditionalDirectories) {
+                    scripts = SearchForShellScripts(folder, scripts);
                 }
-
-                return scripts;
-            } catch(Exception ex) {
-                AnsiConsole.MarkupLine("[red]An exception occured during loading of custom commands[/]");
-                AnsiConsole.WriteException(ex);
-
-                return null;
             }
+
+            return scripts;
         }
 
         private static Dictionary<string, CustomBranch> SearchForShellScripts(string folder, Dictionary<string, CustomBranch> commands = null)
         {
             if (commands == null) {
                 var defaultBranch = new CustomBranch("default");
-                commands = new Dictionary<string, CustomBranch>();
-
-                // Add the default branch (commands that have no specified branch)
-                commands.Add(defaultBranch.Name, defaultBranch);
+                commands = new()
+                {
+                    // Add the default branch (commands that have no specified branch)
+                    { defaultBranch.Name, defaultBranch }
+                };
             }
 
             if (!Directory.Exists(folder)) {
@@ -46,7 +38,7 @@ namespace Gitpod.Tool.Helper
 
             string[] files = Directory.GetFiles(folder, "*.sh");
             foreach (string file in files) {
-                var shellScriptSettings = CustomCommandsLoader.ProcessShellScript(file);
+                var shellScriptSettings = ProcessShellScript(file);
                 
                 if (shellScriptSettings == null) {
                     continue;
@@ -54,9 +46,9 @@ namespace Gitpod.Tool.Helper
 
                 var newCustomCommand = new CustomCommand(shellScriptSettings.Command, file, shellScriptSettings.Description, shellScriptSettings.Arguments);
 
-                if (shellScriptSettings.Branch != String.Empty) {
-                    if (commands.ContainsKey(shellScriptSettings.Branch)) {
-                        commands[shellScriptSettings.Branch].Commands.Add(newCustomCommand);
+                if (shellScriptSettings.Branch != string.Empty) {
+                    if (commands.TryGetValue(shellScriptSettings.Branch, out CustomBranch customBranch)) {
+                        customBranch.Commands.Add(newCustomCommand);
                     } else {
                         var newBranch = new CustomBranch(shellScriptSettings.Branch, shellScriptSettings.BranchDescription);
                         newBranch.Commands.Add(newCustomCommand);
@@ -81,11 +73,11 @@ namespace Gitpod.Tool.Helper
         {
             string[] lines = File.ReadAllLines(fileWithPath);
 
-            string command = String.Empty;
-            string description = String.Empty;
-            string branch = String.Empty;
-            string branchDescription = String.Empty;
-            List<string> args = new List<string>();
+            string command = string.Empty;
+            string description = string.Empty;
+            string branch = string.Empty;
+            string branchDescription = string.Empty;
+            List<string> args = new();
 
             string commandPattern =  @"\# gptCommand: ([a-zA-Z0-9-_]+)";
             string descriptionPattern =  @"\# gptDescription: ([a-zA-Z0-9-_ ,]+)";
@@ -93,11 +85,11 @@ namespace Gitpod.Tool.Helper
             string branchDescriptionPattern =  @"\# gptBranchDescription: ([a-zA-Z0-9-_ ,]+)";
             string argsPattern =  @"\# gptArgument: ([a-zA-Z0-9-_ ,]+)";
 
-            Regex commandRegex = new Regex(commandPattern);
-            Regex descriptionRegex = new Regex(descriptionPattern);
-            Regex branchRegex = new Regex(branchPattern);
-            Regex branchDescriptionRegex = new Regex(branchDescriptionPattern);
-            Regex argsRegex = new Regex(argsPattern);
+            Regex commandRegex = new(commandPattern);
+            Regex descriptionRegex = new(descriptionPattern);
+            Regex branchRegex = new(branchPattern);
+            Regex branchDescriptionRegex = new(branchDescriptionPattern);
+            Regex argsRegex = new(argsPattern);
 
             foreach (string line in lines) {
                 if (commandRegex.IsMatch(line)) {
@@ -130,7 +122,7 @@ namespace Gitpod.Tool.Helper
                 }
             }
 
-            if (command != String.Empty) {
+            if (command != string.Empty) {
                 return new ShellScriptSettings(command, description, branch, branchDescription, args);
             }
 

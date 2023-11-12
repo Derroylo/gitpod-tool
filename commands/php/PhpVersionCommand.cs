@@ -2,16 +2,12 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Linq;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
-using Gitpod.Tool.Helper;
-using System.IO;
+using Gitpod.Tool.Helper.Php;
 
 namespace Gitpod.Tool.Commands.Php
 {
     class PhpVersionCommand : Command<PhpVersionCommand.Settings>
     {
-        private Settings settings;
-
         public class Settings : CommandSettings
         {
             [CommandArgument(0, "[Version]")]
@@ -26,22 +22,20 @@ namespace Gitpod.Tool.Commands.Php
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            this.settings = settings;
-
-            if (this.settings.Version != null) {
-                PhpHelper.SetNewPhpVersion(this.settings.Version, this.settings.Debug);
+            if (settings.Version != null) {
+                PhpHelper.SetNewPhpVersion(settings.Version, settings.Debug);
 
                 return 0;
             }
 
-            string result = PhpHelper.GetCurrentPhpVersionOutput();
+            string result = PhpVersionHelper.GetCurrentPhpVersionOutput();
             AnsiConsole.WriteLine(result);
 
             if (!AnsiConsole.Confirm("Do you want to change the active php version?", false)) {
                 return 0;
             }
 
-            var availablePhpVersions = PhpHelper.GetAvailablePhpVersions();
+            var availablePhpVersions = PhpVersionHelper.GetAvailablePhpVersions();
 
             var newVersion = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
@@ -50,7 +44,7 @@ namespace Gitpod.Tool.Commands.Php
                         .AddChoices(availablePhpVersions.ToArray<string>())
                 );
 
-            PhpHelper.SetNewPhpVersion(newVersion, this.settings.Debug);
+            PhpHelper.SetNewPhpVersion(newVersion, settings.Debug);
 
             return 0;
         }        

@@ -1,12 +1,11 @@
-using System;
 using System.Collections.Generic;
 
 namespace Gitpod.Tool.Classes.Configuration
 {
     class ShellScriptsConfiguration
     {
-        private List<string> additionalDirectories = new List<string>();
+        private List<string> additionalDirectories = new();
 
-        public List<string> AdditionalDirectories { get { return this.additionalDirectories; } set { this.additionalDirectories = value; }}
+        public List<string> AdditionalDirectories { get { return additionalDirectories; } set { additionalDirectories = value; }}
     }
 }

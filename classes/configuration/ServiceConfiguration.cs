@@ -1,16 +1,15 @@
-using System;
 using System.Collections.Generic;
 
 namespace Gitpod.Tool.Classes.Configuration
 {
     class ServiceConfiguration
     {
-        private List<string> active = new List<string>();
+        private List<string> active = new();
 
-        public List<string> Active { get { return this.active; } set { this.active = value; }}
+        public List<string> Active { get { return active; } set { active = value; }}
         
-        private string file = null;
+        private string file = "docker-compose.yml";
 
-        public string File { get { return this.file; } set { this.file = value; } }
+        public string File { get { return file; } set { file = value; } }
     }
 }

@@ -1,16 +1,11 @@
-using System;
 using System.ComponentModel;
-using System.IO;
 using Gitpod.Tool.Helper;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace Gitpod.Tool.Commands.Restore
 {
     class RestoreAllCommand : Command<RestoreAllCommand.Settings>
     {
-        private Settings settings;
-
         public class Settings : CommandSettings
         {
             [CommandOption("-d|--debug")]
@@ -21,7 +16,7 @@ namespace Gitpod.Tool.Commands.Restore
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            this.settings = settings;
+            RestoreHelper.RestoreEnvVariables(settings.Debug);
 
             RestoreHelper.RestorePhpVersion(settings.Debug);
             RestoreHelper.RestorePhpIni(settings.Debug);
