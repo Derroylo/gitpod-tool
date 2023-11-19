@@ -38,6 +38,10 @@ namespace Gitpod.Tool.Commands.Services
             var activeServices = new List<string>();
 
             foreach (KeyValuePair<string, Dictionary<string, string>> item in services) {
+                if (!ServicesConfig.ActiveServices.Contains(item.Key)) {
+                    continue;
+                }
+                 
                 activeServices.Add(item.Key);
             }
 

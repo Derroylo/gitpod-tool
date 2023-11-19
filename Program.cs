@@ -295,7 +295,7 @@ namespace Gitpod.Tool
                 .WithDescription("List available the services");
             branch.AddCommand<StartServicesCommand>("start")
                 .WithDescription("Start the services that are marked as active");
-            branch.AddCommand<StartServicesCommand>("stop")
+            branch.AddCommand<StopServicesCommand>("stop")
                 .WithDescription("Stops running services");
             branch.AddCommand<SelectServicesCommand>("select")
                 .WithDescription("Select which services should be active");
