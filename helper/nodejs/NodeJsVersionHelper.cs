@@ -93,6 +93,9 @@ namespace Gitpod.Tool.Helper.NodeJs
                         ExecCommand.Exec(". ~/.nvm/nvm.sh && nvm use " + newVersion + " && nvm alias default " + newVersion + " && npm install -g " + string.Join(" ", missingPackages), 300);
                     }
 
+                    // In some older versions of npm it could have happened that the folder rights were set incorrect
+                    ExecCommand.Exec("sudo chown -R gitpod:gitpod /home/gitpod/.npm");
+
                     ctx.Status("Saving the new active version so it can be restored...");
 
                     try {
