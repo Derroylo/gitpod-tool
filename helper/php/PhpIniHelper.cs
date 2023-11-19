@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Gitpod.Tool.Helper.Internal.Config;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
@@ -139,8 +138,8 @@ namespace Gitpod.Tool.Helper.Php
             var combinedConfig = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> item in configGlobal) {
-                if (configWeb.ContainsKey(item.Key)) {
-                    combinedConfig.Add(item.Key, configWeb[item.Key]);
+                if (configWeb.TryGetValue(item.Key, out string configWebValue)) {
+                    combinedConfig.Add(item.Key, configWebValue);
                     configWeb.Remove(item.Key);
                 } else {
                     combinedConfig.Add(item.Key, item.Value);
@@ -168,8 +167,8 @@ namespace Gitpod.Tool.Helper.Php
             combinedConfig = new Dictionary<string, string>();
 
             foreach (KeyValuePair<string, string> item in configGlobal) {
-                if (configCLI.ContainsKey(item.Key)) {
-                    combinedConfig.Add(item.Key, configCLI[item.Key]);
+                if (configCLI.TryGetValue(item.Key, out string configCLIValue)) {
+                    combinedConfig.Add(item.Key, configCLIValue);
                     configCLI.Remove(item.Key);
                 } else {
                     combinedConfig.Add(item.Key, item.Value);
