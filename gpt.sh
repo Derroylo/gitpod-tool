@@ -51,7 +51,7 @@ if [ -f "$GPTDIR/.services_stop" ]; then
 
     rm "$GPTDIR/.services_stop"
 
-    docker-compose stopCommand
+    docker-compose $stopCommand
 fi
 
 # Check if we want to change the nodejs version
