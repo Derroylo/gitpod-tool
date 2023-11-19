@@ -7,6 +7,9 @@ namespace Gitpod.Tool.Helper.Php
     {
         public static void InstallPackages(string[] newPackages, string phpVersion, bool debug = false)
         {
+            // Update the pecl channel to the latest protocol
+            ExecCommand.Exec("sudo pecl channel-update pecl.php.net");
+
             var updateRes = ExecCommand.Exec("sudo apt-get update");
             AnsiConsole.MarkupLine("Updating package manager list...[green1]Done[/]");
 
