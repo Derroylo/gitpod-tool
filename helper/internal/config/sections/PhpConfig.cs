@@ -36,7 +36,7 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
         public static Dictionary<string, string> ConfigCli
         {
             get {
-                return appConfig.Php.ConfigWeb;
+                return appConfig.Php.ConfigCLI;
             }
         }
 
