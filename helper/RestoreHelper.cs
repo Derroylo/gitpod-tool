@@ -1,3 +1,4 @@
+using Gitpod.Tool.Helper.Env;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Gitpod.Tool.Helper.NodeJs;
 using Gitpod.Tool.Helper.Php;
@@ -55,10 +56,17 @@ namespace Gitpod.Tool.Helper
         public static void RestoreEnvVariables(bool debug = false)
         {
             // Check if there has been something set via config file
-            AnsiConsole.Write("Checking if Env variables has been set via config....");
+            AnsiConsole.Write("Checking if environment variables/files has been set via config....");
 
-            // Not implemented yet, will come with the next major release
-            AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+            if (EnvironmentConfig.Variables.Count == 0 && EnvironmentConfig.Files.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+            
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
+            EnvRestoreHelper.RestoreEnvironmentVariables(debug);
         }
     }
 }

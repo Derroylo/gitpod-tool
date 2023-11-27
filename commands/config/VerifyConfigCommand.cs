@@ -31,6 +31,11 @@ namespace Gitpod.Tool.Commands.Config
             [Description("Verify shell script settings")]
             [DefaultValue(false)]
             public bool VerifyShellScripts { get; set; }
+
+            [CommandOption("-e|--env")]
+            [Description("Verify environment settings")]
+            [DefaultValue(false)]
+            public bool VerifyEnvironment { get; set; }
         }
 
         public override int Execute(CommandContext context, Settings settings)
@@ -49,7 +54,7 @@ namespace Gitpod.Tool.Commands.Config
 
             bool showSingleOutput = false;
 
-            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts || settings.VerifyNodeJs) {
+            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts || settings.VerifyNodeJs || settings.VerifyEnvironment) {
                 showSingleOutput = true;
             }
 
@@ -67,6 +72,10 @@ namespace Gitpod.Tool.Commands.Config
 
             if (!showSingleOutput || settings.VerifyNodeJs) {
                 OutputNodeJsSettings();
+            }
+
+            if (!showSingleOutput || settings.VerifyEnvironment) {
+                OutputEnvironmentSettings();
             }
 
             return 0;
@@ -223,6 +232,71 @@ namespace Gitpod.Tool.Commands.Config
                 
                 // Render the table to the console
                 AnsiConsole.Write(directoriesTable);
+            }
+        }
+
+        private void OutputEnvironmentSettings()
+        {
+            Rule rule = new() {Title = "[red]Environment variables/files[/]", Justification = Justify.Left};
+
+            AnsiConsole.Write(rule);
+
+            if (EnvironmentConfig.Variables.Count > 0) {
+                AnsiConsole.WriteLine("Variables:");
+
+                // Create a table
+                var envTable = new Table();
+
+                // Add columns
+                envTable.AddColumn("Name");
+                envTable.AddColumn("Value");
+
+                foreach(KeyValuePair<string, string> item in EnvironmentConfig.Variables) {
+                    envTable.AddRow(item.Key, item.Value);
+                }
+                
+                // Render the table to the console
+                AnsiConsole.Write(envTable);
+            }
+
+            if (EnvironmentConfig.Files.Count > 0) {
+                AnsiConsole.WriteLine("Files:");
+
+                // Create a table
+                var envTable = new Table();
+
+                // Add columns
+                envTable.AddColumn("Name");
+                envTable.AddColumn("Filename");
+                envTable.AddColumn("Read from env var");
+                envTable.AddColumn("Content");
+
+                foreach(KeyValuePair<string, Dictionary<string, string>> item in EnvironmentConfig.Files) {
+                    string filename = string.Empty;
+                    string envVariable = string.Empty;
+                    string content = string.Empty;
+
+                    foreach (KeyValuePair<string, string> file in item.Value) {
+                        if (file.Key == "file") {
+                            filename = file.Value;
+                        }
+                        
+                        if (file.Key == "var") {
+                            envVariable = file.Value;
+                        }
+
+                        if (file.Key == "content") {
+                            content = file.Value;
+                        }
+                    }
+
+                    envTable.AddRow(item.Key, filename, envVariable, content);
+                }
+                
+                // Render the table to the console
+                AnsiConsole.Write(envTable);
+            } else {
+                AnsiConsole.WriteLine("No environment files have been set via gpt.yml");
             }
         }
     }   

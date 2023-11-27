@@ -21,5 +21,9 @@ namespace Gitpod.Tool.Classes.Configuration
         private ShellScriptsConfiguration shellScripts = new();
 
         public ShellScriptsConfiguration ShellScripts { get { return shellScripts; } set { shellScripts = value; } }
+
+        private EnvConfiguration env = new();
+
+        public EnvConfiguration Env { get { return env; } set { env = value; } }
     }
 }
