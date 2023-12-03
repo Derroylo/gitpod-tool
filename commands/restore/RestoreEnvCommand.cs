@@ -16,7 +16,8 @@ namespace Gitpod.Tool.Commands.Restore
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            RestoreHelper.RestoreEnvVariables(settings.Debug);
+            //RestoreHelper.RestoreEnvVariables(settings.Debug);
+            RestoreHelper.RestoreEnvFiles(settings.Debug);
             
             return 0;
         }

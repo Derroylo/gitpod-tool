@@ -56,9 +56,9 @@ namespace Gitpod.Tool.Helper
         public static void RestoreEnvVariables(bool debug = false)
         {
             // Check if there has been something set via config file
-            AnsiConsole.Write("Checking if environment variables/files has been set via config....");
+            AnsiConsole.Write("Checking if environment variables has been set via config....");
 
-            if (EnvironmentConfig.Variables.Count == 0 && EnvironmentConfig.Files.Count == 0) {
+            if (EnvironmentConfig.Variables.Count == 0) {
                 AnsiConsole.MarkupLine("[cyan3]Not found[/]");
 
                 return;
@@ -67,6 +67,22 @@ namespace Gitpod.Tool.Helper
             AnsiConsole.MarkupLine("[green1]Found[/]");
 
             EnvRestoreHelper.RestoreEnvironmentVariables(debug);
+        }
+
+        public static void RestoreEnvFiles(bool debug = false)
+        {
+            // Check if there has been something set via config file
+            AnsiConsole.Write("Checking if environment files has been set via config....");
+
+            if (EnvironmentConfig.Files.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+            
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
+            EnvRestoreHelper.RestoreEnvironmentFiles(debug);
         }
     }
 }
