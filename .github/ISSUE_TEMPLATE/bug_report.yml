@@ -5,17 +5,19 @@ body:
 - type: markdown
   attributes:
     value: |
-      Thanks for taking the time to fill out this bug report!
+      Before raising an issue, please search for existing issues to avoid duplicates. If you are using an older Version of GPT, also test the newest version to make sure that issue still exists. For questions, please use [Discord](https://www.gitpod.io/chat).
 - type: textarea
+  id: bug-description
   attributes:
-    label: Describe
-    description: Describe the issue you are experiencing
+    label: Bug description
+    description: Describe the bug you are experiencing
   validations:
     required: true
 - type: textarea
+  id: steps-to-reproduce
   attributes:
     label: Steps To Reproduce
-    description: How can this issue be reproduced?
+    description: How can this bug be reproduced?
     placeholder: |
       1. I start a new gitpod instance of...
       2. I execute the command `gpt ...`
@@ -23,6 +25,7 @@ body:
   validations:
     required: false
 - type: input
+  id: gpt-version
   attributes:
     label: GPT Version
     description: What version of GPT are you using?
@@ -30,11 +33,12 @@ body:
   validations:
     required: true
 - type: input
+  id: example-repo
   attributes:
-    label: Link to your project
-    description: If you have a repo where we can reproduce the error, that would be a great help to find the issue fast.
-    placeholder: https://github.com/derroylo/test-repo
+    label: Example repository
+    description: If you have a repo where we can reproduce the error, that would be a great help to find the issue faster.
 - type: textarea
+  id: gpt-yml-content
   attributes:
     label: .gpt.yml Content
     description: |
@@ -42,6 +46,7 @@ body:
   validations:
     required: false
 - type: textarea
+  id: anything-else
   attributes:
     label: Anything else?
     description: |

@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Gitpod Community Discord Server
+    url: https://www.gitpod.io/chat
+    about: Please ask your questions on the Gitpod Community Server
