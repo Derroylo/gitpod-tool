@@ -48,7 +48,7 @@ namespace Gitpod.Tool.Helper.Env
                 entry.Value.TryGetValue("gpVariable", out string gpVariable);
 
                 if (encodedFileContent == null && gpVariable != null) {
-                    
+                    encodedFileContent = Environment.GetEnvironmentVariable(gpVariable);
                 }
 
                 if (encodedFileContent != null && encodedFileContent != string.Empty) {

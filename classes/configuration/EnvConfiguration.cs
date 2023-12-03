@@ -12,5 +12,9 @@ namespace Gitpod.Tool.Classes.Configuration
         private Dictionary<string, Dictionary<string, string>> files = new();
 
         public Dictionary<string, Dictionary<string, string>> Files { get { return files; } set { files = value; }}
+
+        private Dictionary<string, Dictionary<string, Dictionary<string, string>>> folders = new();
+
+        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> Folders { get { return folders; } set { folders = value; }}
     }
 }

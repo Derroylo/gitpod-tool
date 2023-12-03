@@ -20,7 +20,7 @@ namespace Gitpod.Tool.Commands.Environment
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            var envTypes = new string[] {"Variable", "File"};
+            var envTypes = new string[] {"Variable", "File", "Folder"};
 
             var envType = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -33,6 +33,8 @@ namespace Gitpod.Tool.Commands.Environment
                 AddVariable();
             } else if (envType == "File") {
                 AddFile();
+            } else if (envType == "Folder") {
+                AddFolder();
             }
 
             return 0;
@@ -40,6 +42,136 @@ namespace Gitpod.Tool.Commands.Environment
 
         [GeneratedRegex(@"^([a-z0-9-_]+)$")]
         private static partial Regex EnvNameMatchRegex();
+
+        private void AddFolder()
+        {
+            bool finished = false;
+
+            do {
+                var envFileShortname = string.Empty;
+                bool inputInvalid = false;
+
+                do {
+                    inputInvalid = false;
+
+                    envFileShortname = AnsiConsole.Ask<string>("Shortname for the folder? (Will only be used as entry name in .gpt.yml.): ");
+
+                    if (!EnvNameMatchRegex().Match(envFileShortname).Success) {
+                        AnsiConsole.MarkupLine("[red]The name should only consist of the following characters: a-z 0-9 - _[/]");
+                        inputInvalid = true;
+                    }
+
+                    if (EnvironmentConfig.Folders.Keys.Contains(envFileShortname, StringComparer.OrdinalIgnoreCase)) {
+                        if (!AnsiConsole.Confirm("An entry with that name already exists. Do you want to replace it?", false)) {
+                            inputInvalid = true;
+                        }
+                    }
+                } while (inputInvalid);
+                
+                var envFolderPath = string.Empty;
+                string[] files = null;
+
+                do {
+                    inputInvalid = false;
+
+                    envFolderPath = AnsiConsole.Ask<string>("Enter the full path to the folder:");
+
+                    if (!Directory.Exists(envFolderPath)) {
+                        AnsiConsole.MarkupLine("[red]The folder could not be found![/]");
+                        inputInvalid = true;
+                    }
+
+                    files = Directory.GetFiles(envFolderPath, "*", SearchOption.AllDirectories);
+
+                    if (files.Length == 0) {
+                        AnsiConsole.MarkupLine("[red]No files found in the folder.[/]");
+                        inputInvalid = true;
+                    }
+                } while (inputInvalid);
+
+                var saveLocations = new string[] {".gpt.yml", "gitpod"};
+
+                var saveLocation = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Where should the content of the file being saved?")
+                        .PageSize(10)
+                        .AddChoices(saveLocations)
+                );
+
+                var gpVariable = string.Empty;
+
+                if (saveLocation == "gitpod") {
+                    do {
+                        inputInvalid = false;
+
+                        gpVariable = AnsiConsole.Ask<string>("What is the name of the variable?");
+
+                        if (!EnvNameMatchRegex().Match(gpVariable).Success) {
+                            AnsiConsole.MarkupLine("[red]The variable name should only consist of the following characters: a-z 0-9 - _[/]");
+                            inputInvalid = true;
+                        }
+                    } while (inputInvalid);
+                }
+
+                EnvironmentConfig.Folders.TryGetValue(envFileShortname, out Dictionary<string, Dictionary<string, string>> existingEntry);
+
+                foreach (string file in files) {
+                    string encodedFileContent = string.Empty;
+
+                    try {
+                        var fileContent = File.ReadAllText(file);
+                        encodedFileContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
+                    } catch (Exception e) {
+                        AnsiConsole.WriteException(e);
+                    }
+
+                    /*if (existingEntry != null) {
+                        if (existingEntry.ContainsKey("file")) {
+                            existingEntry["file"] = envFilePath;
+                        } else {
+                            existingEntry.Add("file", envFilePath);
+                        }
+
+                        if (existingEntry.ContainsKey("content") && saveLocation == ".gpt.yml") {
+                            existingEntry["content"] = encodedFileContent;
+                        } else if (!existingEntry.ContainsKey("content") && saveLocation == ".gpt.yml") {
+                            existingEntry.Add("content", encodedFileContent);
+                        } else if (existingEntry.ContainsKey("content") && saveLocation != ".gpt.yml") {
+                            existingEntry.Remove("content");
+                        }
+
+                        if (existingEntry.ContainsKey("var") && saveLocation != ".gpt.yml") {
+                            existingEntry.Remove("var");
+                        }
+                    } else {
+                        var newEntry = new Dictionary<string, string>() {
+                            {"file", envFilePath}
+                        };
+
+                        if (saveLocation == ".gpt.yml") {
+                            newEntry.Add("content", encodedFileContent);
+                        } else {
+                            newEntry.Add("var", gpVariable);
+                        }
+
+                        EnvironmentConfig.Files.Add(envFileShortname, newEntry);
+                    }
+
+                    if (saveLocation != ".gpt.yml") {
+                        ExecCommand.Exec("gp env " + gpVariable + "=" + encodedFileContent, 10);
+                    }*/
+                }
+
+                // Mark the config as updated, so it will be saved on exiting the application
+                EnvironmentConfig.ConfigUpdated = true;
+
+                if (!AnsiConsole.Confirm("Do you want to add more files?", false)) {
+                    finished = true;
+                }
+            } while (!finished);
+
+            AnsiConsole.MarkupLine("[green]The changes have been saved.[/]");
+        }
 
         private void AddFile()
         {

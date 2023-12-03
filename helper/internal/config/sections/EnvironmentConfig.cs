@@ -29,5 +29,18 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections
                 appConfig.Env.Files = value;
             }
         }
+
+        public static Dictionary<string, Dictionary<string, Dictionary<string, string>>> Folders 
+        { 
+            get { 
+                return appConfig.Env.Folders; 
+            } 
+            
+            set { 
+                ConfigUpdated = true;
+                
+                appConfig.Env.Folders = value; 
+            }
+        }
     }
 }
