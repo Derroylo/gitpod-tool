@@ -32,10 +32,10 @@ namespace Gitpod.Tool.Commands.Config
             [DefaultValue(false)]
             public bool VerifyShellScripts { get; set; }
 
-            [CommandOption("-e|--env")]
-            [Description("Verify environment settings")]
+            [CommandOption("-P|--persist")]
+            [Description("Verify persist settings")]
             [DefaultValue(false)]
-            public bool VerifyEnvironment { get; set; }
+            public bool VerifyPersist { get; set; }
         }
 
         public override int Execute(CommandContext context, Settings settings)
@@ -54,7 +54,7 @@ namespace Gitpod.Tool.Commands.Config
 
             bool showSingleOutput = false;
 
-            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts || settings.VerifyNodeJs || settings.VerifyEnvironment) {
+            if (settings.VerifyPhp || settings.VerifyServices || settings.VerifyShellScripts || settings.VerifyNodeJs || settings.VerifyPersist) {
                 showSingleOutput = true;
             }
 
@@ -74,8 +74,8 @@ namespace Gitpod.Tool.Commands.Config
                 OutputNodeJsSettings();
             }
 
-            if (!showSingleOutput || settings.VerifyEnvironment) {
-                OutputEnvironmentSettings();
+            if (!showSingleOutput || settings.VerifyPersist) {
+                OutputPersistSettings();
             }
 
             return 0;
@@ -235,13 +235,13 @@ namespace Gitpod.Tool.Commands.Config
             }
         }
 
-        private void OutputEnvironmentSettings()
+        private void OutputPersistSettings()
         {
-            Rule rule = new() {Title = "[red]Environment variables/files[/]", Justification = Justify.Left};
+            Rule rule = new() {Title = "[red]Persisted variables/files/folders[/]", Justification = Justify.Left};
 
             AnsiConsole.Write(rule);
 
-            if (EnvironmentConfig.Variables.Count > 0) {
+            if (PersistConfig.Variables.Count > 0) {
                 AnsiConsole.WriteLine("Variables:");
 
                 // Create a table
@@ -251,7 +251,7 @@ namespace Gitpod.Tool.Commands.Config
                 envTable.AddColumn("Name");
                 envTable.AddColumn("Value");
 
-                foreach(KeyValuePair<string, string> item in EnvironmentConfig.Variables) {
+                foreach(KeyValuePair<string, string> item in PersistConfig.Variables) {
                     envTable.AddRow(item.Key, item.Value);
                 }
                 
@@ -259,7 +259,7 @@ namespace Gitpod.Tool.Commands.Config
                 AnsiConsole.Write(envTable);
             }
 
-            if (EnvironmentConfig.Files.Count > 0) {
+            if (PersistConfig.Files.Count > 0) {
                 AnsiConsole.WriteLine("Files:");
 
                 // Create a table
@@ -271,7 +271,7 @@ namespace Gitpod.Tool.Commands.Config
                 envTable.AddColumn("Read from env var");
                 envTable.AddColumn("Content");
 
-                foreach(KeyValuePair<string, Dictionary<string, string>> item in EnvironmentConfig.Files) {
+                foreach(KeyValuePair<string, Dictionary<string, string>> item in PersistConfig.Files) {
                     string filename = string.Empty;
                     string envVariable = string.Empty;
                     string content = string.Empty;
@@ -295,8 +295,6 @@ namespace Gitpod.Tool.Commands.Config
                 
                 // Render the table to the console
                 AnsiConsole.Write(envTable);
-            } else {
-                AnsiConsole.WriteLine("No environment files have been set via gpt.yml");
             }
         }
     }   

@@ -3,9 +3,9 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 
-namespace Gitpod.Tool.Commands.Environment
+namespace Gitpod.Tool.Commands.Persist
 {
-    class ListEnvCommand : Command<ListEnvCommand.Settings>
+    class ListEntriesCommand : Command<ListEntriesCommand.Settings>
     {
         public class Settings : CommandSettings
         {
@@ -14,7 +14,7 @@ namespace Gitpod.Tool.Commands.Environment
 
         public override int Execute(CommandContext context, Settings settings)
         {
-            if (EnvironmentConfig.Variables.Count > 0) {
+            if (PersistConfig.Variables.Count > 0) {
                 AnsiConsole.WriteLine("Variables:");
 
                 // Create a table
@@ -24,7 +24,7 @@ namespace Gitpod.Tool.Commands.Environment
                 envTable.AddColumn("Name");
                 envTable.AddColumn("Value");
 
-                foreach(KeyValuePair<string, string> item in EnvironmentConfig.Variables) {
+                foreach(KeyValuePair<string, string> item in PersistConfig.Variables) {
                     envTable.AddRow(item.Key, item.Value);
                 }
                 
@@ -34,7 +34,7 @@ namespace Gitpod.Tool.Commands.Environment
                 AnsiConsole.WriteLine("No environment variables have been set via gpt.yml");
             }
 
-            if (EnvironmentConfig.Files.Count > 0) {
+            if (PersistConfig.Files.Count > 0) {
                 AnsiConsole.WriteLine("Files:");
 
                 // Create a table
@@ -46,7 +46,7 @@ namespace Gitpod.Tool.Commands.Environment
                 envTable.AddColumn("Read from env var");
                 envTable.AddColumn("Content");
 
-                foreach(KeyValuePair<string, Dictionary<string, string>> item in EnvironmentConfig.Files) {
+                foreach(KeyValuePair<string, Dictionary<string, string>> item in PersistConfig.Files) {
                     string filename = string.Empty;
                     string envVariable = string.Empty;
                     string content = string.Empty;
@@ -74,6 +74,7 @@ namespace Gitpod.Tool.Commands.Environment
                 AnsiConsole.WriteLine("No environment files have been set via gpt.yml");
             }
 
+            
             return 0;
         }
     }

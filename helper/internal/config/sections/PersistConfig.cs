@@ -2,44 +2,44 @@ using System.Collections.Generic;
 
 namespace Gitpod.Tool.Helper.Internal.Config.Sections
 {
-    class EnvironmentConfig: ConfigHelper
+    class PersistConfig: ConfigHelper
     {
         public static Dictionary<string, string> Variables
         {
             get {
-                return appConfig.Env.Vars;
+                return appConfig.Persist.Vars;
             }
 
             set {
                 ConfigUpdated = true;
 
-                appConfig.Env.Vars = value;
+                appConfig.Persist.Vars = value;
             }
         }
 
         public static Dictionary<string, Dictionary<string, string>> Files
         {
             get {
-                return appConfig.Env.Files;
+                return appConfig.Persist.Files;
             }
 
             set {
                 ConfigUpdated = true;
 
-                appConfig.Env.Files = value;
+                appConfig.Persist.Files = value;
             }
         }
 
-        public static Dictionary<string, Dictionary<string, Dictionary<string, string>>> Folders 
+        public static Dictionary<string, Dictionary<string, string>> Folders 
         { 
             get { 
-                return appConfig.Env.Folders; 
+                return appConfig.Persist.Folders; 
             } 
             
             set { 
                 ConfigUpdated = true;
                 
-                appConfig.Env.Folders = value; 
+                appConfig.Persist.Folders = value; 
             }
         }
     }

@@ -18,7 +18,7 @@ using Gitpod.Tool.Helper.Internal.Config;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Gitpod.Tool.Commands.Environment;
+using Gitpod.Tool.Commands.Persist;
 
 namespace Gitpod.Tool
 {
@@ -81,7 +81,7 @@ namespace Gitpod.Tool
                 config.AddBranch("apache", branch => AddApacheCommandBranch(branch, additionalCommands));
                 config.AddCommand<AskCommand>("ask").WithDescription("Ask the gitpod ai");
                 config.AddBranch("config", branch => AddConfigCommandBranch(branch, additionalCommands));
-                config.AddBranch("env", branch => AddEnvironmentCommandBranch(branch, additionalCommands));
+                config.AddBranch("persist", branch => AddPersistCommandBranch(branch, additionalCommands));
                 config.AddBranch("mysql", branch => AddMysqlCommandBranch(branch, additionalCommands));
                 config.AddBranch("nodejs", branch => AddNodeJsCommandBranch(branch, additionalCommands));
                 config.AddBranch("php", branch => AddPhpCommandBranch(branch, additionalCommands));
@@ -326,7 +326,7 @@ namespace Gitpod.Tool
                 .WithDescription("Restore settings for NodeJS");
             branch.AddCommand<RestoreEnvCommand>("env")
                 .WithAlias("e")
-                .WithDescription("Restore environment variables");
+                .WithDescription("Restore persisted variables, files or folders");
 
             if (additionalCommands.TryGetValue("restore", out CustomBranch customBranch)) {
                 foreach (CustomCommand cmd in customBranch.Commands) {
@@ -337,16 +337,16 @@ namespace Gitpod.Tool
             }
         }
 
-        private static void AddEnvironmentCommandBranch(IConfigurator<CommandSettings> branch, Dictionary<string, CustomBranch> additionalCommands)
+        private static void AddPersistCommandBranch(IConfigurator<CommandSettings> branch, Dictionary<string, CustomBranch> additionalCommands)
         {
-            branch.SetDescription("List, add or remove environment variables or files");
+            branch.SetDescription("List, add, update or remove variables, files or folders that should be persisted");
 
-            branch.AddCommand<ListEnvCommand>("list")
-                .WithDescription("List all env variables/files");
-            branch.AddCommand<AddEnvCommand>("add")
-                .WithDescription("Add a new env variable/file");
+            branch.AddCommand<ListEntriesCommand>("list")
+                .WithDescription("List all entries");
+            branch.AddCommand<AddEntryCommand>("add")
+                .WithDescription("Add a new entry");
 
-            if (additionalCommands.TryGetValue("environment", out CustomBranch customBranch)) {
+            if (additionalCommands.TryGetValue("persist", out CustomBranch customBranch)) {
                 foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)

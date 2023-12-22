@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Gitpod.Tool.Classes.Configuration
 {
-    class EnvConfiguration
+    class PersistConfiguration
     {
         private Dictionary<string, string> vars = new();
 
@@ -13,8 +13,8 @@ namespace Gitpod.Tool.Classes.Configuration
 
         public Dictionary<string, Dictionary<string, string>> Files { get { return files; } set { files = value; }}
 
-        private Dictionary<string, Dictionary<string, Dictionary<string, string>>> folders = new();
+        private Dictionary<string, Dictionary<string, string>> folders = new();
 
-        public Dictionary<string, Dictionary<string, Dictionary<string, string>>> Folders { get { return folders; } set { folders = value; }}
+        public Dictionary<string, Dictionary<string, string>> Folders { get { return folders; } set { folders = value; }}
     }
 }

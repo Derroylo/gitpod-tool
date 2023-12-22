@@ -1,6 +1,6 @@
-using Gitpod.Tool.Helper.Env;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Gitpod.Tool.Helper.NodeJs;
+using Gitpod.Tool.Helper.Persist;
 using Gitpod.Tool.Helper.Php;
 using Spectre.Console;
 
@@ -58,7 +58,7 @@ namespace Gitpod.Tool.Helper
             // Check if there has been something set via config file
             AnsiConsole.Write("Checking if environment variables has been set via config....");
 
-            if (EnvironmentConfig.Variables.Count == 0) {
+            if (PersistConfig.Variables.Count == 0) {
                 AnsiConsole.MarkupLine("[cyan3]Not found[/]");
 
                 return;
@@ -66,15 +66,15 @@ namespace Gitpod.Tool.Helper
             
             AnsiConsole.MarkupLine("[green1]Found[/]");
 
-            EnvRestoreHelper.RestoreEnvironmentVariables(debug);
+            PersistVariableHelper.RestoreEnvironmentVariables(debug);
         }
 
-        public static void RestoreEnvFiles(bool debug = false)
+        public static void RestorePersistedFiles(bool debug = false)
         {
             // Check if there has been something set via config file
-            AnsiConsole.Write("Checking if environment files has been set via config....");
+            AnsiConsole.Write("Checking if files has been persisted via config....");
 
-            if (EnvironmentConfig.Files.Count == 0) {
+            if (PersistConfig.Files.Count == 0) {
                 AnsiConsole.MarkupLine("[cyan3]Not found[/]");
 
                 return;
@@ -82,7 +82,23 @@ namespace Gitpod.Tool.Helper
             
             AnsiConsole.MarkupLine("[green1]Found[/]");
 
-            EnvRestoreHelper.RestoreEnvironmentFiles(debug);
+            PersistFileHelper.RestorePersistedFiles(debug);
+        }
+
+        public static void RestorePersistedFolders(bool debug = false)
+        {
+            // Check if there has been something set via config file
+            AnsiConsole.Write("Checking if folders has been persisted via config....");
+
+            if (PersistConfig.Folders.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+            
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
+            PersistFolderHelper.RestorePersistedFolders(debug);
         }
     }
 }
