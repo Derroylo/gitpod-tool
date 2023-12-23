@@ -7,6 +7,7 @@ using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
+using Gitpod.Tool.Helper.Internal.Config.Sections.Types;
 
 namespace Gitpod.Tool.Helper.Persist
 {
@@ -15,46 +16,53 @@ namespace Gitpod.Tool.Helper.Persist
         [GeneratedRegex(@"^([a-z0-9-_]+)$")]
         private static partial Regex EnvNameMatchRegex();
 
-        public static void AddFolder()
+        public static void AddFolder(PersistFolderType folderType = null)
         {
             bool finished = false;
 
+            bool isExistingEntry = folderType != null;
+
+            if (folderType == null) {
+                folderType = new PersistFolderType();
+            }
+
             do {
-                var envFolderShortname = string.Empty;
                 bool inputInvalid = false;
 
-                do {
-                    inputInvalid = false;
+                if (folderType.Name == null) {
+                    do {
+                        inputInvalid = false;
 
-                    envFolderShortname = AnsiConsole.Ask<string>("Shortname for the folder? (Will only be used as entry name in .gpt.yml.): ");
+                        folderType.Name = AnsiConsole.Ask<string>("Shortname for the folder? (Will only be used as entry name in .gpt.yml.): ");
 
-                    if (!EnvNameMatchRegex().Match(envFolderShortname).Success) {
-                        AnsiConsole.MarkupLine("[red]The name should only consist of the following characters: a-z 0-9 - _[/]");
-                        inputInvalid = true;
-                    }
-
-                    if (PersistConfig.Folders.Keys.Contains(envFolderShortname, StringComparer.OrdinalIgnoreCase)) {
-                        if (!AnsiConsole.Confirm("An entry with that name already exists. Do you want to replace it?", false)) {
+                        if (!EnvNameMatchRegex().Match(folderType.Name).Success) {
+                            AnsiConsole.MarkupLine("[red]The name should only consist of the following characters: a-z 0-9 - _[/]");
                             inputInvalid = true;
                         }
-                    }
-                } while (inputInvalid);
-                
-                var envFolderPath = string.Empty;
 
+                        if (PersistConfig.Folders.Keys.Contains(folderType.Name, StringComparer.OrdinalIgnoreCase)) {
+                            if (!AnsiConsole.Confirm("An entry with that name already exists. Do you want to replace it?", false)) {
+                                inputInvalid = true;
+                            }
+                        }
+                    } while (inputInvalid);
+                }
+                
                 do {
                     inputInvalid = false;
 
-                    envFolderPath = AnsiConsole.Ask<string>("Enter the full path to the folder:");
+                    if (folderType.Folder == null) {
+                        folderType.Folder = AnsiConsole.Ask<string>("Enter the full path to the folder:");
+                    }
 
-                    if (!Directory.Exists(envFolderPath)) {
+                    if (!Directory.Exists(folderType.Folder)) {
                         AnsiConsole.MarkupLine("[red]The folder could not be found![/]");
                         inputInvalid = true;
                     }
 
                     long size = 0;
 
-                    var files = Directory.GetFiles(envFolderPath);
+                    var files = Directory.GetFiles(folderType.Folder);
 
                     foreach (string file in files) {
                         size += new FileInfo(file).Length;
@@ -66,101 +74,70 @@ namespace Gitpod.Tool.Helper.Persist
                     }
                 } while (inputInvalid);
 
-                var saveLocations = new string[] {".gpt.yml", "gitpod"};
+                string saveLocation = "";
 
-                var saveLocation = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("Where should the content of the file being saved?")
-                        .PageSize(10)
-                        .AddChoices(saveLocations)
-                );
+                if (!isExistingEntry) {
+                    var saveLocations = new string[] {".gpt.yml", "gitpod"};
 
-                var gpVariable = string.Empty;
+                    saveLocation = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title("Where should the content of the file being saved?")
+                            .PageSize(10)
+                            .AddChoices(saveLocations)
+                    );
 
-                if (saveLocation == "gitpod") {
-                    do {
-                        inputInvalid = false;
+                    if (saveLocation == "gitpod") {
+                        do {
+                            inputInvalid = false;
 
-                        gpVariable = AnsiConsole.Ask<string>("What is the name of the variable?");
+                            folderType.GpVarName = AnsiConsole.Ask<string>("What is the name of the variable?");
 
-                        if (!EnvNameMatchRegex().Match(gpVariable).Success) {
-                            AnsiConsole.MarkupLine("[red]The variable name should only consist of the following characters: a-z 0-9 - _[/]");
-                            inputInvalid = true;
-                        }
-                    } while (inputInvalid);
+                            if (!EnvNameMatchRegex().Match(folderType.GpVarName).Success) {
+                                AnsiConsole.MarkupLine("[red]The variable name should only consist of the following characters: a-z 0-9 - _[/]");
+                                inputInvalid = true;
+                            }
+                        } while (inputInvalid);
+                    }
+
+                    folderType.Overwrite = false;
+
+                    if (AnsiConsole.Confirm("Should the folder been overwritten if it exists?", false)) {
+                        folderType.Overwrite = true;
+                    }
                 }
-
-                var overwriteFolder = false;
-
-                if (AnsiConsole.Confirm("Should the folder been overwritten if it exists?", false)) {
-                    overwriteFolder = true;
-                }
-
-                string encodedFolderContent = string.Empty;
 
                 try {
-                    ZipFile.CreateFromDirectory(envFolderPath, envFolderShortname + ".zip");
+                    ZipFile.CreateFromDirectory(folderType.Folder, folderType.Name + ".zip");
 
-                    var fileContent = File.ReadAllText(envFolderShortname + ".zip");
-                    encodedFolderContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
+                    var fileContent = File.ReadAllText(folderType.Name + ".zip");
+                    folderType.Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
 
-                    File.Delete(envFolderShortname + ".zip");
+                    File.Delete(folderType.Name + ".zip");
                 } catch (Exception e) {
                     AnsiConsole.WriteException(e);
 
                     return;
                 }
 
-                PersistConfig.Folders.TryGetValue(envFolderShortname, out Dictionary<string, string> existingEntry);
-
-                if (existingEntry != null) {
-                    if (existingEntry.ContainsKey("folder")) {
-                        existingEntry["folder"] = envFolderPath;
-                    } else {
-                        existingEntry.Add("folder", envFolderPath);
-                    }
-
-                    if (existingEntry.ContainsKey("content") && saveLocation == ".gpt.yml") {
-                        existingEntry["content"] = encodedFolderContent;
-                    } else if (!existingEntry.ContainsKey("content") && saveLocation == ".gpt.yml") {
-                        existingEntry.Add("content", encodedFolderContent);
-                    } else if (existingEntry.ContainsKey("content") && saveLocation != ".gpt.yml") {
-                        existingEntry.Remove("content");
-                    }
-
-                    if (existingEntry.ContainsKey("var") && saveLocation != ".gpt.yml") {
-                        existingEntry.Remove("var");
-                    }
-
-                    if (existingEntry.ContainsKey("overwrite")) {
-                        existingEntry["overwrite"] = overwriteFolder.ToString().ToLower();
-                    } else {
-                        existingEntry.Add("overwrite", overwriteFolder.ToString().ToLower());
-                    }
+                if (isExistingEntry || PersistConfig.Folders.ContainsKey(folderType.Name)) {
+                    PersistConfig.Folders[folderType.Name] = folderType.ToDictionary();
                 } else {
-                    var newEntry = new Dictionary<string, string>() {
-                        {"folder", envFolderPath},
-                        {"overwrite", overwriteFolder.ToString().ToLower()}
-                    };
-
-                    if (saveLocation == ".gpt.yml") {
-                        newEntry.Add("content", encodedFolderContent);
-                    } else {
-                        newEntry.Add("var", gpVariable);
-                    }
-
-                    PersistConfig.Folders.Add(envFolderShortname, newEntry);
+                    PersistConfig.Folders.Add(folderType.Name, folderType.ToDictionary());
                 }
 
                 if (saveLocation != ".gpt.yml") {
-                    ExecCommand.Exec("gp env " + gpVariable + "=" + encodedFolderContent, 10);
+                    ExecCommand.Exec("gp env " + folderType.Name + "=" + folderType.Content, 10);
                 }
 
                 // Mark the config as updated, so it will be saved on exiting the application
                 PersistConfig.ConfigUpdated = true;
 
-                if (!AnsiConsole.Confirm("Do you want to add more files?", false)) {
+                if (!isExistingEntry && !AnsiConsole.Confirm("Do you want to add more folders?", false)) {
                     finished = true;
+                } else if (isExistingEntry) {
+                    finished = true;
+                } else {
+                    folderType = new PersistFolderType();
                 }
             } while (!finished);
 
@@ -211,6 +188,51 @@ namespace Gitpod.Tool.Helper.Persist
                     }
                 }
             }
+        }
+
+        public static void DeleteFolder()
+        {
+            if (PersistConfig.Folders.Count == 0) {
+                AnsiConsole.WriteLine("No persisted folders have been set via gpt.yml");
+
+                return;
+            }
+
+            var folders = PersistConfig.Folders.Keys.ToArray<string>();
+
+            var folder = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select the folder you want to delete")
+                    .PageSize(10)
+                    .AddChoices(folders)
+            );
+
+            PersistConfig.Folders.Remove(folder);
+            PersistConfig.ConfigUpdated = true;
+
+            AnsiConsole.MarkupLine("[green]The changes have been saved.[/]");
+        }
+
+        public static void UpdateFolder()
+        {
+            if (PersistConfig.Folders.Count == 0) {
+                AnsiConsole.WriteLine("No persisted folders have been set via gpt.yml");
+
+                return;
+            }
+
+            var folders = PersistConfig.Folders.Keys.ToArray<string>();
+
+            var folder = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select the folder you want to update")
+                    .PageSize(10)
+                    .AddChoices(folders)
+            );
+
+            var folderType = PersistFolderType.FromDictionary(folder, PersistConfig.Folders[folder]);
+
+            PersistFolderHelper.AddFolder(folderType);
         }
     }
 }

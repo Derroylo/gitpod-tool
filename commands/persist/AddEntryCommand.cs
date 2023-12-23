@@ -40,7 +40,5 @@ namespace Gitpod.Tool.Commands.Persist
 
             return 0;
         }
-
-            
     }
 }

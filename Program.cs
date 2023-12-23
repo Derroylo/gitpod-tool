@@ -345,6 +345,10 @@ namespace Gitpod.Tool
                 .WithDescription("List all entries");
             branch.AddCommand<AddEntryCommand>("add")
                 .WithDescription("Add a new entry");
+            branch.AddCommand<UpdateEntryCommand>("update")
+                .WithDescription("Update an existing entry");
+            branch.AddCommand<DeleteEntryCommand>("delete")
+                .WithDescription("Delete an existing entry");
 
             if (additionalCommands.TryGetValue("persist", out CustomBranch customBranch)) {
                 foreach (CustomCommand cmd in customBranch.Commands) {

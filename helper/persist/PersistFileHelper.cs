@@ -6,6 +6,7 @@ using System.Text;
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Spectre.Console;
 using System.Text.RegularExpressions;
+using Gitpod.Tool.Helper.Internal.Config.Sections.Types;
 
 namespace Gitpod.Tool.Helper.Persist
 {
@@ -14,45 +15,52 @@ namespace Gitpod.Tool.Helper.Persist
         [GeneratedRegex(@"^([a-z0-9-_]+)$")]
         private static partial Regex EnvNameMatchRegex();
 
-        public static void AddFile()
+        public static void AddFile(PersistFileType fileType = null)
         {
             bool finished = false;
+            bool isExistingEntry = fileType != null;
+
+            if (fileType == null) {
+                fileType = new PersistFileType();
+            }
 
             do {
-                var envFileShortname = string.Empty;
                 bool inputInvalid = false;
 
-                do {
-                    inputInvalid = false;
+                if (fileType.Name == null) {
+                    do {
+                        inputInvalid = false;
 
-                    envFileShortname = AnsiConsole.Ask<string>("Shortname for the file? (Will only be used as entry name in .gpt.yml.): ");
+                        fileType.Name = AnsiConsole.Ask<string>("Shortname for the file? (Will only be used as entry name in .gpt.yml.): ");
 
-                    if (!EnvNameMatchRegex().Match(envFileShortname).Success) {
-                        AnsiConsole.MarkupLine("[red]The name should only consist of the following characters: a-z 0-9 - _[/]");
-                        inputInvalid = true;
-                    }
-
-                    if (PersistConfig.Files.Keys.Contains(envFileShortname, StringComparer.OrdinalIgnoreCase)) {
-                        if (!AnsiConsole.Confirm("An entry with that name already exists. Do you want to replace it?", false)) {
+                        if (!EnvNameMatchRegex().Match(fileType.Name).Success) {
+                            AnsiConsole.MarkupLine("[red]The name should only consist of the following characters: a-z 0-9 - _[/]");
                             inputInvalid = true;
                         }
-                    }
-                } while (inputInvalid);
+
+                        if (PersistConfig.Files.Keys.Contains(fileType.Name, StringComparer.OrdinalIgnoreCase)) {
+                            if (!AnsiConsole.Confirm("An entry with that name already exists. Do you want to replace it?", false)) {
+                                inputInvalid = true;
+                            }
+                        }
+                    } while (inputInvalid);
+                }
                 
-                var envFilePath = string.Empty;
                 FileInfo fileInfo = null;
 
                 do {
                     inputInvalid = false;
 
-                    envFilePath = AnsiConsole.Ask<string>("Enter the full path to the file:");
+                    if (fileType.File == null) {
+                        fileType.File = AnsiConsole.Ask<string>("Enter the full path to the file:");
+                    }
 
-                    if (!File.Exists(envFilePath)) {
+                    if (!File.Exists(fileType.File)) {
                         AnsiConsole.MarkupLine("[red]The file could not be found![/]");
                         inputInvalid = true;
                     }
 
-                    fileInfo = new FileInfo(envFilePath);
+                    fileInfo = new FileInfo(fileType.File);
 
                     if (fileInfo.Length > 32768) {
                         AnsiConsole.MarkupLine("[red]The file needs to be less then 32kb in size.[/]");
@@ -60,97 +68,68 @@ namespace Gitpod.Tool.Helper.Persist
                     }
                 } while (inputInvalid);
 
-                var saveLocations = new string[] {".gpt.yml", "gitpod"};
+                string saveLocation = "";
 
-                var saveLocation = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("Where should the content of the file being saved?")
-                        .PageSize(10)
-                        .AddChoices(saveLocations)
-                );
+                if (!isExistingEntry) {
+                    var saveLocations = new string[] {".gpt.yml", "gitpod"};
 
-                var gpVariable = string.Empty;
+                    saveLocation = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title("Where should the content of the file being saved?")
+                            .PageSize(10)
+                            .AddChoices(saveLocations)
+                    );
 
-                if (saveLocation == "gitpod") {
-                    do {
-                        inputInvalid = false;
+                    if (saveLocation == "gitpod") {
+                        do {
+                            inputInvalid = false;
 
-                        gpVariable = AnsiConsole.Ask<string>("What is the name of the variable?");
+                            fileType.GpVarName = AnsiConsole.Ask<string>("What is the name of the variable?");
 
-                        if (!EnvNameMatchRegex().Match(gpVariable).Success) {
-                            AnsiConsole.MarkupLine("[red]The variable name should only consist of the following characters: a-z 0-9 - _[/]");
-                            inputInvalid = true;
-                        }
-                    } while (inputInvalid);
+                            if (!EnvNameMatchRegex().Match(fileType.GpVarName).Success) {
+                                AnsiConsole.MarkupLine("[red]The variable name should only consist of the following characters: a-z 0-9 - _[/]");
+                                inputInvalid = true;
+                            }
+                        } while (inputInvalid);
+                    }
+
+                    fileType.Overwrite = false;
+
+                    if (AnsiConsole.Confirm("Should the file been overwritten if it exists?", false)) {
+                        fileType.Overwrite = true;
+                    }
+                } else {
+                    saveLocation = fileType.GpVarName == null ? ".gpt.yml" : "gitpod";
                 }
-
-                var overwriteFile = false;
-
-                if (AnsiConsole.Confirm("Should the file been overwritten if it exists?", false)) {
-                    overwriteFile = true;
-                }
-
-                string encodedFileContent = string.Empty;
 
                 try {
-                    var fileContent = File.ReadAllText(envFilePath);
-                    encodedFileContent = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
+                    var fileContent = File.ReadAllText(fileType.File);
+                    fileType.Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
                 } catch (Exception e) {
                     AnsiConsole.WriteException(e);
 
                     return;
                 }
 
-                PersistConfig.Files.TryGetValue(envFileShortname, out Dictionary<string, string> existingEntry);
-
-                if (existingEntry != null) {
-                    if (existingEntry.ContainsKey("file")) {
-                        existingEntry["file"] = envFilePath;
-                    } else {
-                        existingEntry.Add("file", envFilePath);
-                    }
-
-                    if (existingEntry.ContainsKey("content") && saveLocation == ".gpt.yml") {
-                        existingEntry["content"] = encodedFileContent;
-                    } else if (!existingEntry.ContainsKey("content") && saveLocation == ".gpt.yml") {
-                        existingEntry.Add("content", encodedFileContent);
-                    } else if (existingEntry.ContainsKey("content") && saveLocation != ".gpt.yml") {
-                        existingEntry.Remove("content");
-                    }
-
-                    if (existingEntry.ContainsKey("var") && saveLocation != ".gpt.yml") {
-                        existingEntry.Remove("var");
-                    }
-
-                    if (existingEntry.ContainsKey("overwrite")) {
-                        existingEntry["overwrite"] = overwriteFile.ToString().ToLower();
-                    } else {
-                        existingEntry.Add("overwrite", overwriteFile.ToString().ToLower());
-                    }
+                if (isExistingEntry || PersistConfig.Files.ContainsKey(fileType.Name)) {
+                    PersistConfig.Files[fileType.Name] = fileType.ToDictionary();
                 } else {
-                    var newEntry = new Dictionary<string, string>() {
-                        {"file", envFilePath},
-                        {"overwrite", overwriteFile.ToString().ToLower()}
-                    };
-
-                    if (saveLocation == ".gpt.yml") {
-                        newEntry.Add("content", encodedFileContent);
-                    } else {
-                        newEntry.Add("var", gpVariable);
-                    }
-
-                    PersistConfig.Files.Add(envFileShortname, newEntry);
+                    PersistConfig.Files.Add(fileType.Name, fileType.ToDictionary());
                 }
 
                 if (saveLocation != ".gpt.yml") {
-                    ExecCommand.Exec("gp env " + gpVariable + "=" + encodedFileContent, 10);
+                    ExecCommand.Exec("gp env " + fileType.GpVarName + "=" + fileType.Content, 10);
                 }
 
                 // Mark the config as updated, so it will be saved on exiting the application
                 PersistConfig.ConfigUpdated = true;
 
-                if (!AnsiConsole.Confirm("Do you want to add more files?", false)) {
+                if (!isExistingEntry && !AnsiConsole.Confirm("Do you want to add more files?", false)) {
                     finished = true;
+                } else if (isExistingEntry) {
+                    finished = true;
+                } else {
+                    fileType = new PersistFileType();
                 }
             } while (!finished);
 
@@ -197,6 +176,51 @@ namespace Gitpod.Tool.Helper.Persist
                     }
                 }
             }
+        }
+
+        public static void DeleteFile()
+        {
+            if (PersistConfig.Files.Count == 0) {
+                AnsiConsole.WriteLine("No persisted files have been set via gpt.yml");
+
+                return;
+            }
+
+            var files = PersistConfig.Files.Keys.ToArray<string>();
+
+            var file = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select the file you want to delete")
+                    .PageSize(10)
+                    .AddChoices(files)
+            );
+
+            PersistConfig.Files.Remove(file);
+            PersistConfig.ConfigUpdated = true;
+
+            AnsiConsole.MarkupLine("[green]The changes have been saved.[/]");
+        }
+
+        public static void UpdateFile()
+        {
+            if (PersistConfig.Files.Count == 0) {
+                AnsiConsole.WriteLine("No persisted files have been set via gpt.yml");
+
+                return;
+            }
+
+            var files = PersistConfig.Files.Keys.ToArray<string>();
+
+            var file = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select the variable you want to update")
+                    .PageSize(10)
+                    .AddChoices(files)
+            );
+
+            var fileType = PersistFileType.FromDictionary(file, PersistConfig.Files[file]);
+
+            PersistFileHelper.AddFile(fileType);
         }
     }
 }
