@@ -21,5 +21,9 @@ namespace Gitpod.Tool.Classes.Configuration
         private ShellScriptsConfiguration shellScripts = new();
 
         public ShellScriptsConfiguration ShellScripts { get { return shellScripts; } set { shellScripts = value; } }
+
+        private PersistConfiguration persist = new();
+
+        public PersistConfiguration Persist { get { return persist; } set { persist = value; } }
     }
 }

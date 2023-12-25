@@ -18,6 +18,7 @@ using Gitpod.Tool.Helper.Internal.Config;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Gitpod.Tool.Commands.Persist;
 
 namespace Gitpod.Tool
 {
@@ -80,6 +81,7 @@ namespace Gitpod.Tool
                 config.AddBranch("apache", branch => AddApacheCommandBranch(branch, additionalCommands));
                 config.AddCommand<AskCommand>("ask").WithDescription("Ask the gitpod ai");
                 config.AddBranch("config", branch => AddConfigCommandBranch(branch, additionalCommands));
+                config.AddBranch("persist", branch => AddPersistCommandBranch(branch, additionalCommands));
                 config.AddBranch("mysql", branch => AddMysqlCommandBranch(branch, additionalCommands));
                 config.AddBranch("nodejs", branch => AddNodeJsCommandBranch(branch, additionalCommands));
                 config.AddBranch("php", branch => AddPhpCommandBranch(branch, additionalCommands));
@@ -87,7 +89,7 @@ namespace Gitpod.Tool
                 config.AddBranch("services", branch => AddServicesCommandBranch(branch, additionalCommands));
                 config.AddCommand<SelfUpdateCommand>("update").WithDescription("Update this tool to the latest version");
 
-                List<string> reservedBranches = new() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore" };
+                List<string> reservedBranches = new() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore", "environment" };
 
                 // Add branches that haven´t been added yet via custom commands
                 foreach (KeyValuePair<string, CustomBranch> entry in additionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {
@@ -144,7 +146,7 @@ namespace Gitpod.Tool
             AnsiConsole.Markup("[deepskyblue3]Gitpod Tool[/] - Version [green]" + programVersion + "[/]");
 
             // Try to load the config file
-            ConfigHelper.ReadConfigFile();
+            ConfigHelper.ReadConfigFile(showException);
 
             try {
                 // Check for updates
@@ -324,9 +326,31 @@ namespace Gitpod.Tool
                 .WithDescription("Restore settings for NodeJS");
             branch.AddCommand<RestoreEnvCommand>("env")
                 .WithAlias("e")
-                .WithDescription("Restore environment variables");
+                .WithDescription("Restore persisted variables, files or folders");
 
             if (additionalCommands.TryGetValue("restore", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
+                    branch.AddCommand<ShellFileCommand>(cmd.Command)
+                        .WithData(cmd)
+                        .WithDescription(cmd.Description);
+                }
+            }
+        }
+
+        private static void AddPersistCommandBranch(IConfigurator<CommandSettings> branch, Dictionary<string, CustomBranch> additionalCommands)
+        {
+            branch.SetDescription("List, add, update or remove variables, files or folders that should be persisted");
+
+            branch.AddCommand<ListEntriesCommand>("list")
+                .WithDescription("List all entries");
+            branch.AddCommand<AddEntryCommand>("add")
+                .WithDescription("Add a new entry");
+            branch.AddCommand<UpdateEntryCommand>("update")
+                .WithDescription("Update an existing entry");
+            branch.AddCommand<DeleteEntryCommand>("delete")
+                .WithDescription("Delete an existing entry");
+
+            if (additionalCommands.TryGetValue("persist", out CustomBranch customBranch)) {
                 foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)

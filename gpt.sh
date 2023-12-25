@@ -6,6 +6,10 @@
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
+if [[ $SCRIPTPATH == "/usr/bin" ]]; then
+    SCRIPTPATH="/home/gitpod/.gpt"
+fi
+
 # Directory where gpt is located
 GPTDIR=$SCRIPTPATH
 
@@ -65,4 +69,11 @@ if [ -f "$GPTDIR/.nodejs" ]; then
     nvm use $version
     
     nvm alias default $version
+fi
+
+# Check if we want to change the nodejs version
+if [ -f "$GPTDIR/.env_restore" ]; then
+    source "$GPTDIR/.env_restore"
+
+    rm "$GPTDIR/.env_restore"
 fi

@@ -1,5 +1,6 @@
 using Gitpod.Tool.Helper.Internal.Config.Sections;
 using Gitpod.Tool.Helper.NodeJs;
+using Gitpod.Tool.Helper.Persist;
 using Gitpod.Tool.Helper.Php;
 using Spectre.Console;
 
@@ -55,10 +56,49 @@ namespace Gitpod.Tool.Helper
         public static void RestoreEnvVariables(bool debug = false)
         {
             // Check if there has been something set via config file
-            AnsiConsole.Write("Checking if Env variables has been set via config....");
+            AnsiConsole.Write("Checking if environment variables has been set via config....");
 
-            // Not implemented yet, will come with the next major release
-            AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+            if (PersistConfig.Variables.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+            
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
+            PersistVariableHelper.RestoreEnvironmentVariables(debug);
+        }
+
+        public static void RestorePersistedFiles(bool debug = false)
+        {
+            // Check if there has been something set via config file
+            AnsiConsole.Write("Checking if files has been persisted via config....");
+
+            if (PersistConfig.Files.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+            
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
+            PersistFileHelper.RestorePersistedFiles(debug);
+        }
+
+        public static void RestorePersistedFolders(bool debug = false)
+        {
+            // Check if there has been something set via config file
+            AnsiConsole.Write("Checking if folders has been persisted via config....");
+
+            if (PersistConfig.Folders.Count == 0) {
+                AnsiConsole.MarkupLine("[cyan3]Not found[/]");
+
+                return;
+            }
+            
+            AnsiConsole.MarkupLine("[green1]Found[/]");
+
+            PersistFolderHelper.RestorePersistedFolders(debug);
         }
     }
 }

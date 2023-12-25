@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Gitpod.Tool.Classes.Configuration;
+using Spectre.Console;
 
 namespace Gitpod.Tool.Helper.Internal.Config
 {
@@ -45,14 +46,14 @@ namespace Gitpod.Tool.Helper.Internal.Config
 
             try {
                 appConfig = ConfigReader.ReadConfigFile(configFileWithPath);
-            } catch {
+            } catch (Exception e) {
                 configFileValid = false;
 
                 if (rethrowParseException) {
                     // Init the app config with default data if the existing config file is invalid
                     appConfig = new Configuration();
 
-                    throw;
+                    AnsiConsole.WriteException(e);
                 }
             }
 
