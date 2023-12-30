@@ -25,6 +25,31 @@ namespace Gitpod.Tool.Helper.Persist
             }
 
             do {
+                if (!isExistingEntry) {
+                    AnsiConsole.MarkupLine("This tool provides different options to persist files.");
+                    AnsiConsole.MarkupLine("yaml:");
+                    AnsiConsole.MarkupLine("The content of the file will be added to .gpt.yml");
+                    AnsiConsole.MarkupLine("Works only for content smaller then 32kb, can be reused in different workspaces and must be manually updated.");
+                    AnsiConsole.WriteLine("");
+                    AnsiConsole.MarkupLine("gitpod:");
+                    AnsiConsole.MarkupLine("The content of the file will be saved as gitpod env variable");
+                    AnsiConsole.MarkupLine("Works only for content smaller then 32kb, can be reused in different workspaces and must be manually updated.");
+                    AnsiConsole.WriteLine("");
+                    AnsiConsole.MarkupLine("symlink:");
+                    AnsiConsole.MarkupLine("The original content of the file will be moved to the /workspace/.gpt folder and a symlink wil be created.");
+                    AnsiConsole.MarkupLine("Works for any size of contents but the content is only available in this workspace.");
+                    AnsiConsole.WriteLine("");
+
+                    var saveLocations = new string[] {"yaml", "gitpod", "symlink"};
+
+                    fileType.Method = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title("How do you want to persist the file?")
+                            .PageSize(10)
+                            .AddChoices(saveLocations)
+                    );
+                }
+
                 bool inputInvalid = false;
 
                 if (fileType.Name == null) {
@@ -62,25 +87,19 @@ namespace Gitpod.Tool.Helper.Persist
 
                     fileInfo = new FileInfo(fileType.File);
 
-                    if (fileInfo.Length > 32768) {
+                    if (!inputInvalid && fileType.Method == "symlink" && fileInfo.FullName.StartsWith("/workspace/")) {
+                        AnsiConsole.MarkupLine("[red]All files within the workspace path are already being persisted between restarts![/]");
+                        inputInvalid = true;
+                    }
+
+                    if (!inputInvalid && fileType.Method != "symlink" && fileInfo.Length > 32768) {
                         AnsiConsole.MarkupLine("[red]The file needs to be less then 32kb in size.[/]");
                         inputInvalid = true;
                     }
-                } while (inputInvalid);
-
-                string saveLocation = "";
+               } while (inputInvalid);
 
                 if (!isExistingEntry) {
-                    var saveLocations = new string[] {".gpt.yml", "gitpod"};
-
-                    saveLocation = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title("Where should the content of the file being saved?")
-                            .PageSize(10)
-                            .AddChoices(saveLocations)
-                    );
-
-                    if (saveLocation == "gitpod") {
+                    if (fileType.Method == "gitpod") {
                         do {
                             inputInvalid = false;
 
@@ -95,20 +114,22 @@ namespace Gitpod.Tool.Helper.Persist
 
                     fileType.Overwrite = false;
 
-                    if (AnsiConsole.Confirm("Should the file been overwritten if it exists?", false)) {
+                    if (fileType.Method != "symlink" && AnsiConsole.Confirm("Should the file been overwritten if it exists?", false)) {
                         fileType.Overwrite = true;
+                    } else if (fileType.Method == "symlink") {
+                        fileType.Overwrite = null;
                     }
-                } else {
-                    saveLocation = fileType.GpVarName == null ? ".gpt.yml" : "gitpod";
                 }
 
-                try {
-                    var fileContent = File.ReadAllText(fileType.File);
-                    fileType.Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
-                } catch (Exception e) {
-                    AnsiConsole.WriteException(e);
+                if (fileType.Method != "symlink") {
+                    try {
+                        var fileContent = File.ReadAllText(fileType.File);
+                        fileType.Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
+                    } catch (Exception e) {
+                        AnsiConsole.WriteException(e);
 
-                    return;
+                        return;
+                    }
                 }
 
                 if (isExistingEntry || PersistConfig.Files.ContainsKey(fileType.Name)) {
@@ -117,7 +138,7 @@ namespace Gitpod.Tool.Helper.Persist
                     PersistConfig.Files.Add(fileType.Name, fileType.ToDictionary());
                 }
 
-                if (saveLocation != ".gpt.yml") {
+                if (fileType.Method == "gitpod") {
                     ExecCommand.Exec("gp env " + fileType.GpVarName + "=" + fileType.Content, 10);
                 }
 
@@ -142,34 +163,82 @@ namespace Gitpod.Tool.Helper.Persist
                 return;
             }
 
-            foreach (KeyValuePair<string, Dictionary<string, string>> entry in PersistConfig.Files) {
-                entry.Value.TryGetValue("file", out string outputFileName);
+            var persistedFileType = new PersistFileType();
 
-                if (outputFileName == null || outputFileName == string.Empty) {
+            foreach (KeyValuePair<string, Dictionary<string, string>> entry in PersistConfig.Files) {
+                persistedFileType = PersistFileType.FromDictionary(entry.Key, entry.Value);
+
+                if (persistedFileType.File == null || persistedFileType.File == string.Empty) {
                     AnsiConsole.MarkupLine("[red]Missing value \"file\" for restoring " + entry.Key + "[/]");
                     
                     continue;
                 }
 
-                entry.Value.TryGetValue("overwrite", out string overwriteExistingFile);
+                if (persistedFileType.Method != "symlink" && File.Exists(persistedFileType.File) && persistedFileType.Overwrite != true) {
+                    AnsiConsole.MarkupLine("[red]File \"" + persistedFileType.File + "\" already exists and overwriting is disabled for restoring " + entry.Key + "[/]");
 
-                if (File.Exists(outputFileName) && overwriteExistingFile != null && overwriteExistingFile == "true") {
-                    AnsiConsole.MarkupLine("[red]File \"" + outputFileName + "\" already exists and overwriting is disabled for restoring " + entry.Key + "[/]");
+                    continue;
                 }
 
-                entry.Value.TryGetValue("content", out string encodedFileContent);
-                entry.Value.TryGetValue("gpVariable", out string gpVariable);
-
-                if (encodedFileContent == null && gpVariable != null) {
-                    encodedFileContent = Environment.GetEnvironmentVariable(gpVariable);
+                if (persistedFileType.Content == null && persistedFileType.GpVarName != null) {
+                    persistedFileType.Content = Environment.GetEnvironmentVariable(persistedFileType.GpVarName);
                 }
 
-                if (encodedFileContent != null && encodedFileContent != string.Empty) {
+                if (persistedFileType.Method != "symlink" && persistedFileType.Content != null && persistedFileType.Content != string.Empty) {
                     try {
-                        string decodedFileString = Encoding.UTF8.GetString(Convert.FromBase64String(encodedFileContent));
+                        string decodedFileString = Encoding.UTF8.GetString(Convert.FromBase64String(persistedFileType.Content));
 
-                        File.WriteAllText(outputFileName, decodedFileString);
+                        File.WriteAllText(persistedFileType.File, decodedFileString);
                     } catch (Exception e) {
+                        AnsiConsole.WriteException(e);
+
+                        continue;
+                    }
+                }  else if (persistedFileType.Method == "symlink") {
+                    var sourceFileInfo = new FileInfo(persistedFileType.File);
+                    var targetFileInfo = new FileInfo("/workspace/.gpt/persisted/files/" + entry.Key + "/" + sourceFileInfo.Name);
+                    var targetDirInfo = new DirectoryInfo("/workspace/.gpt/persisted/files/" + entry.Key + "/");
+                   
+                    if (sourceFileInfo.LinkTarget != null && sourceFileInfo.LinkTarget != "") {
+                        AnsiConsole.MarkupLine("[red]The given file for " + entry.Key + " is already a symlink.[/]");
+                    
+                        continue;
+                    }
+
+                    if (sourceFileInfo.LinkTarget == null && !sourceFileInfo.Exists) {
+                        AnsiConsole.MarkupLine("[red]The given file for " + entry.Key + " doesn´t exists.[/]");
+                    
+                        continue;
+                    }
+
+                    if (!targetDirInfo.Exists) {
+                        targetDirInfo.Create();
+                    }
+
+                    if (!targetFileInfo.Exists) {
+                        try {
+                            sourceFileInfo.CopyTo(targetFileInfo.FullName);
+                        } catch (Exception e) {
+                            AnsiConsole.MarkupLine("[red]An error occurred during copying file \"" + sourceFileInfo.FullName + "\" to " + "\"" + targetFileInfo.FullName + "\"[/]");
+                            AnsiConsole.WriteException(e);
+
+                            continue;
+                        }
+                    }
+
+                    try {
+                        sourceFileInfo.Delete();
+                    } catch (Exception e) {
+                        AnsiConsole.MarkupLine("[red]An error occurred deletion of file \"" + sourceFileInfo.FullName + "\"[/]");
+                        AnsiConsole.WriteException(e);
+
+                        continue;
+                    }
+                    
+                    try {
+                        sourceFileInfo.CreateAsSymbolicLink(targetFileInfo.FullName);
+                    } catch (Exception e) {
+                        AnsiConsole.MarkupLine("[red]An error occurred trying to create a symlink of file \"" + sourceFileInfo.FullName + "\" to \"" + targetDirInfo.FullName + "\"[/]");
                         AnsiConsole.WriteException(e);
 
                         continue;
@@ -203,13 +272,15 @@ namespace Gitpod.Tool.Helper.Persist
 
         public static void UpdateFile()
         {
-            if (PersistConfig.Files.Count == 0) {
+            var filteredFiles = PersistConfig.Files.Where(i => PersistFileType.FromDictionary(i.Key, i.Value).Method != "symlink").ToDictionary(item => item.Key, item => item.Value);
+
+            if (filteredFiles.Count == 0) {
                 AnsiConsole.WriteLine("No persisted files have been set via gpt.yml");
 
                 return;
             }
 
-            var files = PersistConfig.Files.Keys.ToArray<string>();
+            var files = filteredFiles.Keys.ToArray<string>();
 
             var file = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()

@@ -324,8 +324,7 @@ namespace Gitpod.Tool
             branch.AddCommand<RestoreNodeJsCommand>("nodejs")
                 .WithAlias("n")
                 .WithDescription("Restore settings for NodeJS");
-            branch.AddCommand<RestoreEnvCommand>("env")
-                .WithAlias("e")
+            branch.AddCommand<RestorePersistCommand>("persist")
                 .WithDescription("Restore persisted variables, files or folders");
 
             if (additionalCommands.TryGetValue("restore", out CustomBranch customBranch)) {

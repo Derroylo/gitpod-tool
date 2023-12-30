@@ -27,6 +27,31 @@ namespace Gitpod.Tool.Helper.Persist
             }
 
             do {
+                if (!isExistingEntry) {
+                    AnsiConsole.MarkupLine("This tool provides different options to persist folders.");
+                    AnsiConsole.MarkupLine("yaml:");
+                    AnsiConsole.MarkupLine("The content of the folder will be zipped and it´s content will be added to .gpt.yml");
+                    AnsiConsole.MarkupLine("Works only for content smaller then 32kb, can be reused in different workspaces and must be manually updated.");
+                    AnsiConsole.WriteLine("");
+                    AnsiConsole.MarkupLine("gitpod:");
+                    AnsiConsole.MarkupLine("The content of the folder will be zipped and it´s content will be saved as gitpod env variable");
+                    AnsiConsole.MarkupLine("Works only for content smaller then 32kb, can be reused in different workspaces and must be manually updated.");
+                    AnsiConsole.WriteLine("");
+                    AnsiConsole.MarkupLine("symlink:");
+                    AnsiConsole.MarkupLine("The original content of the folder will be moved to the /workspace/.gpt folder and a symlink wil be created.");
+                    AnsiConsole.MarkupLine("Works for any size of contents but the content is only available in this workspace.");
+                    AnsiConsole.WriteLine("");
+
+                    var saveLocations = new string[] {"yaml", "gitpod", "symlink"};
+
+                    folderType.Method = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title("How do you want to persist the folder?")
+                            .PageSize(10)
+                            .AddChoices(saveLocations)
+                    );
+                }
+
                 bool inputInvalid = false;
 
                 if (folderType.Name == null) {
@@ -60,33 +85,33 @@ namespace Gitpod.Tool.Helper.Persist
                         inputInvalid = true;
                     }
 
-                    long size = 0;
+                    if (!inputInvalid && folderType.Method == "symlink") {
+                        var dirInfo = new DirectoryInfo(folderType.Folder);
 
-                    var files = Directory.GetFiles(folderType.Folder);
-
-                    foreach (string file in files) {
-                        size += new FileInfo(file).Length;
+                        if (dirInfo.FullName.StartsWith("/workspace/")) {
+                            AnsiConsole.MarkupLine("[red]All folders within the workspace path are already being persisted between restarts![/]");
+                            inputInvalid = true;
+                        }
                     }
 
-                    if (size > 32768) {
-                        AnsiConsole.MarkupLine("[red]The sum of all file sizes needs to be less then 32kb.[/]");
-                        inputInvalid = true;
+                    if (!inputInvalid && folderType.Method != "symlink") {
+                        long size = 0;
+
+                        var files = Directory.GetFiles(folderType.Folder);
+
+                        foreach (string file in files) {
+                            size += new FileInfo(file).Length;
+                        }
+
+                        if (size > 32768) {
+                            AnsiConsole.MarkupLine("[red]The sum of all file sizes needs to be less then 32kb.[/]");
+                            inputInvalid = true;
+                        }
                     }
                 } while (inputInvalid);
 
-                string saveLocation = "";
-
                 if (!isExistingEntry) {
-                    var saveLocations = new string[] {".gpt.yml", "gitpod"};
-
-                    saveLocation = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title("Where should the content of the file being saved?")
-                            .PageSize(10)
-                            .AddChoices(saveLocations)
-                    );
-
-                    if (saveLocation == "gitpod") {
+                    if (folderType.Method == "gitpod") {
                         do {
                             inputInvalid = false;
 
@@ -101,22 +126,26 @@ namespace Gitpod.Tool.Helper.Persist
 
                     folderType.Overwrite = false;
 
-                    if (AnsiConsole.Confirm("Should the folder been overwritten if it exists?", false)) {
+                    if (folderType.Method != "symlink" && AnsiConsole.Confirm("Should the folder been overwritten if it exists?", false)) {
                         folderType.Overwrite = true;
+                    } else if (folderType.Method == "symlink") {
+                        folderType.Overwrite = null;
                     }
                 }
 
-                try {
-                    ZipFile.CreateFromDirectory(folderType.Folder, folderType.Name + ".zip");
+                if (folderType.Method != "symlink") {
+                    try {
+                        ZipFile.CreateFromDirectory(folderType.Folder, folderType.Name + ".zip");
 
-                    var fileContent = File.ReadAllText(folderType.Name + ".zip");
-                    folderType.Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
+                        var fileContent = File.ReadAllText(folderType.Name + ".zip");
+                        folderType.Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
 
-                    File.Delete(folderType.Name + ".zip");
-                } catch (Exception e) {
-                    AnsiConsole.WriteException(e);
+                        File.Delete(folderType.Name + ".zip");
+                    } catch (Exception e) {
+                        AnsiConsole.WriteException(e);
 
-                    return;
+                        return;
+                    }
                 }
 
                 if (isExistingEntry || PersistConfig.Folders.ContainsKey(folderType.Name)) {
@@ -125,7 +154,7 @@ namespace Gitpod.Tool.Helper.Persist
                     PersistConfig.Folders.Add(folderType.Name, folderType.ToDictionary());
                 }
 
-                if (saveLocation != ".gpt.yml") {
+                if (folderType.Method == "gitpod") {
                     ExecCommand.Exec("gp env " + folderType.Name + "=" + folderType.Content, 10);
                 }
 
@@ -146,42 +175,91 @@ namespace Gitpod.Tool.Helper.Persist
 
         public static void RestorePersistedFolders(bool debug = false)
         {
-            if (PersistConfig.Files.Count == 0) {
+            if (PersistConfig.Folders.Count == 0) {
                 return;
             }
 
-            foreach (KeyValuePair<string, Dictionary<string, string>> entry in PersistConfig.Files) {
-                entry.Value.TryGetValue("folder", out string outputFolderName);
+            var persistedFolderType = new PersistFolderType();
 
-                if (outputFolderName == null || outputFolderName == string.Empty) {
+            foreach (KeyValuePair<string, Dictionary<string, string>> entry in PersistConfig.Folders) {
+                persistedFolderType = PersistFolderType.FromDictionary(entry.Key, entry.Value);
+
+                if (persistedFolderType.Folder == null || persistedFolderType.Folder == string.Empty) {
                     AnsiConsole.MarkupLine("[red]Missing value \"folder\" for restoring " + entry.Key + "[/]");
                     
                     continue;
                 }
 
-                entry.Value.TryGetValue("overwrite", out string overwriteExistingFolder);
+                if (persistedFolderType.Method != "symlink" && Directory.Exists(persistedFolderType.Folder) && persistedFolderType.Overwrite != true) {
+                    AnsiConsole.MarkupLine("[red]Folder \"" + persistedFolderType.Folder + "\" already exists and overwriting is disabled for restoring " + entry.Key + "[/]");
 
-                if (Directory.Exists(outputFolderName) && overwriteExistingFolder != null && overwriteExistingFolder == "true") {
-                    AnsiConsole.MarkupLine("[red]Folder \"" + overwriteExistingFolder + "\" already exists and overwriting is disabled for restoring " + entry.Key + "[/]");
+                    continue;
                 }
 
-                entry.Value.TryGetValue("content", out string encodedFileContent);
-                entry.Value.TryGetValue("gpVariable", out string gpVariable);
-
-                if (encodedFileContent == null && gpVariable != null) {
-                    encodedFileContent = Environment.GetEnvironmentVariable(gpVariable);
+                if (persistedFolderType.Content == null && persistedFolderType.GpVarName != null) {
+                    persistedFolderType.Content = Environment.GetEnvironmentVariable(persistedFolderType.GpVarName);
                 }
 
-                if (encodedFileContent != null && encodedFileContent != string.Empty) {
+                if (persistedFolderType.Method != "symlink" && persistedFolderType.Content != null && persistedFolderType.Content != string.Empty) {
                     try {
-                        string decodedFileString = Encoding.UTF8.GetString(Convert.FromBase64String(encodedFileContent));
+                        string decodedFileString = Encoding.UTF8.GetString(Convert.FromBase64String(persistedFolderType.Content));
 
-                        File.WriteAllText(outputFolderName + ".zip", decodedFileString);
+                        File.WriteAllText(persistedFolderType.Folder + ".zip", decodedFileString);
 
-                        ZipFile.ExtractToDirectory(outputFolderName + ".zip", outputFolderName);
+                        ZipFile.ExtractToDirectory(persistedFolderType.Folder + ".zip", persistedFolderType.Folder);
 
-                        File.Delete(outputFolderName + ".zip");                        
+                        File.Delete(persistedFolderType.Folder + ".zip");                        
                     } catch (Exception e) {
+                        AnsiConsole.WriteException(e);
+
+                        continue;
+                    }
+                } else if (persistedFolderType.Method == "symlink") {
+                    var sourceDirInfo = new DirectoryInfo(persistedFolderType.Folder);
+                    var targetDirInfo = new DirectoryInfo("/workspace/.gpt/persisted/" + sourceDirInfo.Name);
+
+                    if (sourceDirInfo.LinkTarget != null && sourceDirInfo.LinkTarget != "") {
+                        AnsiConsole.MarkupLine("[red]The given folder for " + entry.Key + " is already a symlink.[/]");
+                    
+                        continue;
+                    }                   
+
+                    if (sourceDirInfo.LinkTarget == null && !sourceDirInfo.Exists) {
+                        AnsiConsole.MarkupLine("[red]The given folder for " + entry.Key + " doesn´t exists.[/]");
+                    
+                        continue;
+                    }
+
+                    if (!targetDirInfo.Exists) {
+                        targetDirInfo.Create();
+
+                        var files = sourceDirInfo.GetFiles();
+
+                        foreach (FileInfo file in files) {
+                            try {
+                                file.CopyTo("/workspace/.gpt/persisted/" + sourceDirInfo.Name + "/" + file.Name);
+                            } catch (Exception e) {
+                                AnsiConsole.MarkupLine("[red]An error occurred during copying file \"" + file.FullName + "\" to " + "/workspace/.gpt/persisted/" + sourceDirInfo.Name + "/" + file.Name + "[/]");
+                                AnsiConsole.WriteException(e);
+
+                                continue;
+                            }
+                        }
+                    }
+
+                    try {
+                        sourceDirInfo.Delete(true);
+                    } catch (Exception e) {
+                        AnsiConsole.MarkupLine("[red]An error occurred deletion of folder \"" + sourceDirInfo.FullName + "\"[/]");
+                        AnsiConsole.WriteException(e);
+
+                        continue;
+                    }
+                    
+                    try {
+                        sourceDirInfo.CreateAsSymbolicLink("/workspace/.gpt/persisted/" + sourceDirInfo.Name);
+                    } catch (Exception e) {
+                        AnsiConsole.MarkupLine("[red]An error occurred trying to create a symlink of folder \"" + sourceDirInfo.FullName + "\" to \"" + "/workspace/.gpt/persisted/" + sourceDirInfo.Name + "\"[/]");
                         AnsiConsole.WriteException(e);
 
                         continue;
@@ -215,13 +293,15 @@ namespace Gitpod.Tool.Helper.Persist
 
         public static void UpdateFolder()
         {
-            if (PersistConfig.Folders.Count == 0) {
+            var filteredFolders = PersistConfig.Folders.Where(i => PersistFolderType.FromDictionary(i.Key, i.Value).Method != "symlink").ToDictionary(item => item.Key, item => item.Value);
+
+            if (filteredFolders.Count == 0) {
                 AnsiConsole.WriteLine("No persisted folders have been set via gpt.yml");
 
                 return;
             }
 
-            var folders = PersistConfig.Folders.Keys.ToArray<string>();
+            var folders = filteredFolders.Keys.ToArray<string>();
 
             var folder = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()

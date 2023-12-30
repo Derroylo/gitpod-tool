@@ -4,7 +4,7 @@ using Spectre.Console.Cli;
 
 namespace Gitpod.Tool.Commands.Restore
 {
-    class RestoreEnvCommand : Command<RestoreEnvCommand.Settings>
+    class RestorePersistCommand : Command<RestorePersistCommand.Settings>
     {
         public class Settings : CommandSettings
         {

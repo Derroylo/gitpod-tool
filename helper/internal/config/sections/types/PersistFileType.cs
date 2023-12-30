@@ -14,6 +14,8 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections.Types
 
         public string Content {get; set;}
 
+        public string Method {get; set;}
+
         public static PersistFileType FromDictionary(string name, Dictionary<string, string> data) {
             var newType = new PersistFileType() {
                 Name = name
@@ -33,6 +35,10 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections.Types
 
             if (data.TryGetValue("content", out string content)) {
                 newType.Content = content;
+            }
+
+            if (data.TryGetValue("method", out string method)) {
+                newType.Method = method;
             }
 
             return newType;
@@ -60,6 +66,10 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections.Types
 
             if (Content != null) {
                 typeDictionary.Add("content", Content);
+            }
+
+            if (Method != null) {
+                typeDictionary.Add("method", Method);
             }
 
             return typeDictionary;
@@ -99,6 +109,12 @@ namespace Gitpod.Tool.Helper.Internal.Config.Sections.Types
                 typeString += ", Content: undefined";
             }
 
+            if (Method != null) {
+                typeString += ", Method: " + Method;
+            } else {
+                typeString += ", Method: undefined";
+            }
+            
             return typeString;
         }
     }
