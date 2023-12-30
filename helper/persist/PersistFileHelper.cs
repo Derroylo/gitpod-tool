@@ -272,13 +272,15 @@ namespace Gitpod.Tool.Helper.Persist
 
         public static void UpdateFile()
         {
-            if (PersistConfig.Files.Count == 0) {
+            var filteredFiles = PersistConfig.Files.Where(i => PersistFileType.FromDictionary(i.Key, i.Value).Method != "symlink").ToDictionary(item => item.Key, item => item.Value);
+
+            if (filteredFiles.Count == 0) {
                 AnsiConsole.WriteLine("No persisted files have been set via gpt.yml");
 
                 return;
             }
 
-            var files = PersistConfig.Files.Keys.ToArray<string>();
+            var files = filteredFiles.Keys.ToArray<string>();
 
             var file = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()

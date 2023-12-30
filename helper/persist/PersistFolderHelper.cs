@@ -293,13 +293,15 @@ namespace Gitpod.Tool.Helper.Persist
 
         public static void UpdateFolder()
         {
-            if (PersistConfig.Folders.Count == 0) {
+            var filteredFolders = PersistConfig.Folders.Where(i => PersistFolderType.FromDictionary(i.Key, i.Value).Method != "symlink").ToDictionary(item => item.Key, item => item.Value);
+
+            if (filteredFolders.Count == 0) {
                 AnsiConsole.WriteLine("No persisted folders have been set via gpt.yml");
 
                 return;
             }
 
-            var folders = PersistConfig.Folders.Keys.ToArray<string>();
+            var folders = filteredFolders.Keys.ToArray<string>();
 
             var folder = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
