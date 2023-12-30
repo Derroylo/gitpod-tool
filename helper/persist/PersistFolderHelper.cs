@@ -192,6 +192,8 @@ namespace Gitpod.Tool.Helper.Persist
 
                 if (persistedFolderType.Method != "symlink" && Directory.Exists(persistedFolderType.Folder) && persistedFolderType.Overwrite != true) {
                     AnsiConsole.MarkupLine("[red]Folder \"" + persistedFolderType.Folder + "\" already exists and overwriting is disabled for restoring " + entry.Key + "[/]");
+
+                    continue;
                 }
 
                 if (persistedFolderType.Content == null && persistedFolderType.GpVarName != null) {
@@ -213,14 +215,20 @@ namespace Gitpod.Tool.Helper.Persist
                         continue;
                     }
                 } else if (persistedFolderType.Method == "symlink") {
-                    if (new FileInfo(persistedFolderType.Folder).Attributes.HasFlag(FileAttributes.ReparsePoint)) {
-                        AnsiConsole.MarkupLine("[red]The given folder for " + entry.Key + " is already a symlink[/]");
+                    var sourceDirInfo = new DirectoryInfo(persistedFolderType.Folder);
+                    var targetDirInfo = new DirectoryInfo("/workspace/.gpt/persisted/" + sourceDirInfo.Name);
+
+                    if (sourceDirInfo.LinkTarget != null && sourceDirInfo.LinkTarget != "") {
+                        AnsiConsole.MarkupLine("[red]The given folder for " + entry.Key + " is already a symlink.[/]");
+                    
+                        continue;
+                    }                   
+
+                    if (sourceDirInfo.LinkTarget == null && !sourceDirInfo.Exists) {
+                        AnsiConsole.MarkupLine("[red]The given folder for " + entry.Key + " doesn´t exists.[/]");
                     
                         continue;
                     }
-
-                    var sourceDirInfo = new DirectoryInfo(persistedFolderType.Folder);
-                    var targetDirInfo = new DirectoryInfo("/workspace/.gpt/persisted/" + sourceDirInfo.Name);
 
                     if (!targetDirInfo.Exists) {
                         targetDirInfo.Create();
