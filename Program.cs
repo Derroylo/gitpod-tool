@@ -19,6 +19,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using Gitpod.Tool.Commands.Persist;
+using Gitpod.Tool.Commands.Sync;
 
 namespace Gitpod.Tool
 {
@@ -87,9 +88,10 @@ namespace Gitpod.Tool
                 config.AddBranch("php", branch => AddPhpCommandBranch(branch, additionalCommands));
                 config.AddBranch("restore", branch => AddRestoreCommandBranch(branch, additionalCommands));
                 config.AddBranch("services", branch => AddServicesCommandBranch(branch, additionalCommands));
+                config.AddBranch("sync", branch => AddSyncCommandBranch(branch, additionalCommands));
                 config.AddCommand<SelfUpdateCommand>("update").WithDescription("Update this tool to the latest version");
 
-                List<string> reservedBranches = new() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore", "environment" };
+                List<string> reservedBranches = new() { "default", "config", "php", "nodejs", "apache", "mysql", "services", "restore", "environment", "sync" };
 
                 // Add branches that haven´t been added yet via custom commands
                 foreach (KeyValuePair<string, CustomBranch> entry in additionalCommands.Where(x => !reservedBranches.Contains(x.Key))) {
@@ -350,6 +352,22 @@ namespace Gitpod.Tool
                 .WithDescription("Delete an existing entry");
 
             if (additionalCommands.TryGetValue("persist", out CustomBranch customBranch)) {
+                foreach (CustomCommand cmd in customBranch.Commands) {
+                    branch.AddCommand<ShellFileCommand>(cmd.Command)
+                        .WithData(cmd)
+                        .WithDescription(cmd.Description);
+                }
+            }
+        }
+
+        private static void AddSyncCommandBranch(IConfigurator<CommandSettings> branch, Dictionary<string, CustomBranch> additionalCommands)
+        {
+            branch.SetDescription("Sync files from your local machine with a workspace or between workspaces.");
+
+            branch.AddCommand<SyncWorkspaceCommand>("workspace")
+                .WithDescription("Connect to another workspace and sync the content of a folder");
+
+            if (additionalCommands.TryGetValue("sync", out CustomBranch customBranch)) {
                 foreach (CustomCommand cmd in customBranch.Commands) {
                     branch.AddCommand<ShellFileCommand>(cmd.Command)
                         .WithData(cmd)

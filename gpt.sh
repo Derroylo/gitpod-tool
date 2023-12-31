@@ -71,9 +71,24 @@ if [ -f "$GPTDIR/.nodejs" ]; then
     nvm alias default $version
 fi
 
-# Check if we want to change the nodejs version
+# Restore env variables
 if [ -f "$GPTDIR/.env_restore" ]; then
     source "$GPTDIR/.env_restore"
 
     rm "$GPTDIR/.env_restore"
+fi
+
+# Execute the sync commands
+if [ -f "$GPTDIR/.sync" ]; then
+    syncCommand=$(<"$GPTDIR/.sync")
+
+    rm "$GPTDIR/.sync"
+
+    eval $syncCommand   
+
+    inotifywait --recursive --monitor --format "%e %w%f" --event modify,move,create,delete ./ \
+    | while read changed; do
+        echo $changed
+        eval $syncCommand
+    done
 fi
