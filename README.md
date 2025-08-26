@@ -1,3 +1,6 @@
+> [!NOTE]
+> This tool has been written for Gitpod classic and is now read-only, since Gitpod classic will be shutdown shortly. The successor can be found under this [link](https://github.com/Derroylo/webdev-tool).
+
 # CLI Tool for Gitpod
 
 ## Purpose
